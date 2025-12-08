@@ -1,0 +1,26 @@
+# Lightning Login Demo App
+
+This app demonstrates Lightning Login (LNURL-auth) for:
+
+1. Non-developers (simple explanation + guided onboarding)
+
+2. Developers (in-depth technical guide + code examples)
+
+3. Live demo (users can actually log in with their Lightning wallet)
+
+4. Workshop Mode (presentation-friendly view)
+
+The app must:
+
+- Be minimal, clean, and easy to extend
+
+- Use Structured Content from /content/*.json for all text content
+
+- Use Next.js App Router
+
+- Use next-auth for session management
+
+- Implement real LNURL-auth using lnurl lib and custom endpoints
+
+- Store users in a small Prisma DB (SQLite for local, Postgres for production)
+
