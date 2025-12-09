@@ -37,3 +37,57 @@ body {
 .prose li {
   margin-bottom: 0.5rem;
 }
+
+/* Prose neutral variant for developer docs */
+.prose-neutral {
+  max-width: none;
+}
+
+.prose-neutral p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  color: inherit;
+}
+
+.prose-neutral ul,
+.prose-neutral ol {
+  margin-bottom: 1rem;
+}
+
+.prose-neutral code {
+  font-size: 0.875em;
+  background-color: rgb(245 245 245);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Workshop mode styles */
+.workshop-mode {
+  font-size: 1.25rem;
+  line-height: 1.8;
+}
+
+.workshop-mode h1 {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.workshop-mode h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.workshop-mode h3 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.workshop-mode p {
+  margin-bottom: 1.5rem;
+}
+
+/* Ensure code blocks don't break prose width */
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+}

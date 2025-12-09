@@ -1,11 +1,25 @@
 import { getDeveloperContent } from "@/lib/content/getDeveloperContent";
 import { ContentPageHeader } from "@/app/components/ContentPageHeader";
-import { DeveloperSectionRenderer } from "./components/DeveloperSectionRenderer";
-import { DevNavigation } from "./components/DevNavigation";
-import { WorkshopModeToggle } from "./components/WorkshopModeToggle";
+import { DeveloperSectionRenderer } from "../components/DeveloperSectionRenderer";
+import { DevNavigation } from "../components/DevNavigation";
+import { WorkshopModeToggle } from "../components/WorkshopModeToggle";
+import { notFound } from "next/navigation";
 
-export default async function DeveloperPage() {
+type DeveloperSlugPageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default async function DeveloperSlugPage({
+  params,
+}: DeveloperSlugPageProps) {
+  const { slug } = await params;
   const content = await getDeveloperContent();
+
+  const section = content.sections.find((s) => s.slug === slug);
+
+  if (!section) {
+    notFound();
+  }
 
   return (
     <>
@@ -14,20 +28,14 @@ export default async function DeveloperPage() {
           <DevNavigation
             sections={content.sections}
             navOrder={content.navOrder}
+            currentSlug={slug}
           />
           <div className="flex-1">
             <ContentPageHeader
               title={content.title}
               tagline={content.tagline}
             />
-            <div className="space-y-12">
-              {content.sections.map((section) => (
-                <DeveloperSectionRenderer
-                  key={section.id}
-                  section={section}
-                />
-              ))}
-            </div>
+            <DeveloperSectionRenderer section={section} />
           </div>
         </div>
       </div>
@@ -35,3 +43,4 @@ export default async function DeveloperPage() {
     </>
   );
 }
+
