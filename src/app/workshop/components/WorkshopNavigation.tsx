@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { totalSlides } from "@/content/workshop";
 
-export default function WorkshopNavigation() {
+function WorkshopNavigationContent() {
   const router = useRouter();
   const params = useSearchParams();
   const currentIndex = parseInt(params.get("index") ?? "0", 10);
@@ -35,6 +36,14 @@ export default function WorkshopNavigation() {
         Next →
       </button>
     </div>
+  );
+}
+
+export default function WorkshopNavigation() {
+  return (
+    <Suspense fallback={null}>
+      <WorkshopNavigationContent />
+    </Suspense>
   );
 }
 

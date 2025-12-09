@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import Link from "next/link";
-import { slides } from "@/content/workshop";
 import Slide from "./components/Slide";
 import WorkshopNavigation from "./components/WorkshopNavigation";
+import { slides } from "@/content/workshop";
 
-export default function WorkshopPage() {
+function WorkshopContent() {
   const router = useRouter();
   const params = useSearchParams();
   const idx = parseInt(params.get("index") ?? "0", 10);
@@ -34,9 +35,25 @@ export default function WorkshopPage() {
   }, [idx]);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-white dark:bg-neutral-900 text-black dark:text-white relative">
+    <>
       <Slide slide={slide} />
       <WorkshopNavigation />
+    </>
+  );
+}
+
+export default function WorkshopPage() {
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-white dark:bg-neutral-900 text-black dark:text-white relative">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-full">
+            <div className="text-xl">Loading workshop...</div>
+          </div>
+        }
+      >
+        <WorkshopContent />
+      </Suspense>
       <Link
         href="/education"
         className="absolute top-4 left-4 bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
