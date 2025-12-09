@@ -22,7 +22,8 @@
       "paragraphs": [
         "Lightning Login is an authentication protocol using LNURL-auth that allows users to authenticate with websites using their Bitcoin/Lightning wallet instead of passwords or email-based accounts.",
         "This documentation covers the technical implementation details, protocol flow, code examples, and integration patterns for developers who want to add Lightning Login to their applications.",
-        "Whether you're building a simple Node.js server or integrating with NextAuth.js, this guide will walk you through the process step by step."
+        "Whether you're building a simple Node.js server or integrating with NextAuth.js, this guide will walk you through the process step by step.",
+        "If you're new to Lightning Login concepts, start with the Education section to understand why it matters and how it compares to other authentication methods. Then return here for implementation details."
       ]
     },
     {
@@ -49,15 +50,28 @@
       "kind": "protocol",
       "title": "Protocol Flow",
       "paragraphs": [
-        "The LNURL-auth protocol follows a specific sequence of steps. Understanding this flow is crucial for proper implementation."
+        "The LNURL-auth protocol follows a specific sequence of steps. Understanding this flow is crucial for proper implementation.",
+        "The flow is a challenge-response pattern: the server generates a random challenge (k1), the wallet proves ownership of a private key by signing it, and the server verifies the signature. This creates cryptographic proof of identity without storing credentials.",
+        "Each step has specific requirements: k1 challenges must be cryptographically random and expire after 5 minutes, signatures use ECDSA with secp256k1 (same as Bitcoin), and sessions use httpOnly cookies for security. See the Complete Implementation Walkthrough section for detailed code examples."
       ],
       "codeExamples": [
         {
           "id": "flow-diagram",
           "title": "Simplified Protocol Flow",
           "language": "text",
-          "code": "Website -> LNURL endpoint -> Wallet -> Signed k1 -> Validation -> Session"
+          "code": "Frontend -> GET /api/auth/lnurl -> Server generates k1 -> Encodes LNURL -> QR Code\nWallet scans QR -> Decodes LNURL -> Derives key -> Signs k1 -> GET /api/auth/callback\nServer verifies k1 & signature -> Creates session cookie -> Returns {status: 'OK'}\nFrontend detects auth -> Reloads -> Shows logged-in state"
         }
+      ],
+      "bulletPoints": [
+        "Frontend requests LNURL from server (no parameters needed)",
+        "Server generates 32-byte random k1 challenge and stores it with 5-minute expiration",
+        "Server encodes callback URL (with tag=login&k1=...) to bech32 LNURL format",
+        "Frontend displays LNURL as QR code",
+        "Wallet scans QR, decodes LNURL, derives domain-specific key, signs k1 with ECDSA",
+        "Wallet calls callback URL with key (pubkey), sig (signature), and k1",
+        "Server verifies k1 exists and isn't expired, then verifies signature",
+        "If valid, server creates httpOnly session cookie with pubkey and returns success",
+        "Frontend detects authentication via WebSocket or polling and reloads page"
       ]
     },
     {
@@ -194,9 +208,9 @@
         "Several libraries exist to help you implement LNURL-auth. Here are the main options available in the JavaScript/TypeScript ecosystem."
       ],
       "bulletPoints": [
-        "lnurl: Low-level primitives for LNURL operations",
-        "passport-lnurl-auth: Express/Passport strategy for LNURL-auth",
-        "Lightning-specific JS tools: Libraries for key derivation and signature verification"
+        "lnurl (npm): Low-level primitives for LNURL encoding, decoding, and signature verification. Used in this implementation for bech32 encoding and ECDSA signature verification.",
+        "passport-lnurl-auth: Express/Passport strategy for LNURL-auth integration",
+        "lightning-backends: Additional Lightning Network utilities (note: not required for LNURL-auth, only signature verification is needed)"
       ]
     },
     {
@@ -223,16 +237,22 @@
       "title": "Developer FAQ",
       "paragraphs": [
         "Q: Do I need a Lightning node to implement LNURL-auth?",
-        "A: No, you don't need your own Lightning node. The protocol only requires that users have a Lightning wallet that can sign challenges. Your server just needs to verify signatures.",
+        "A: No, you don't need your own Lightning node. The protocol only requires that users have a Lightning wallet that can sign challenges. Your server just needs to verify signatures using ECDSA (secp256k1). No Lightning payments or channels are involved — it's pure cryptographic signature verification.",
         "",
         "Q: How do I handle key derivation for domain-specific keys?",
-        "A: LNURL-auth uses BIP32 derivation paths. Each domain gets its own linking key derived from the user's wallet seed. Libraries like lnurl handle this automatically.",
+        "A: LNURL-auth uses BIP32-like hierarchical deterministic derivation. Each domain gets its own linking key (public key) derived from the user's wallet seed. The wallet handles this derivation automatically — your server only receives the public key and verifies signatures. You don't need to implement key derivation on the server side.",
         "",
         "Q: What happens if a user loses their wallet?",
-        "A: If a user loses access to their wallet and doesn't have a backup, they lose that identity. Consider implementing account recovery mechanisms (linking additional keys, email fallback, etc.) if needed for your use case.",
+        "A: If a user loses access to their wallet and doesn't have a backup, they lose that identity (similar to losing a hardware security key). Consider implementing account recovery mechanisms (linking additional keys, email fallback, etc.) if needed for your use case. The public key serves as the user identifier, so losing the private key means losing access to that account.",
         "",
         "Q: Can I use LNURL-auth with existing user accounts?",
-        "A: Yes, you can link Lightning Login to existing accounts or use it as the primary authentication method. The choice depends on your application's requirements."
+        "A: Yes, you can link Lightning Login to existing accounts or use it as the primary authentication method. You can map the public key (pubkey) to existing user records in your database, or use the pubkey as the primary identifier. The choice depends on your application's requirements.",
+        "",
+        "Q: What's the difference between k1 and the public key?",
+        "A: The k1 is a temporary 32-byte random challenge generated by your server for each login attempt. It expires after 5 minutes and is single-use. The public key (pubkey) is the user's permanent identifier derived from their wallet seed. The wallet signs the k1 challenge with its private key, proving ownership without revealing the private key.",
+        "",
+        "Q: How do I handle multi-instance/serverless deployments?",
+        "A: The current implementation uses an in-memory Map for k1 storage, which doesn't persist across instances. For production, use Redis/Upstash KV for shared k1 storage, or rely on the session cookie (which persists across instances) and check it first in your status endpoint. The session cookie approach already handles multi-instance deployments gracefully."
       ]
     }
   ]

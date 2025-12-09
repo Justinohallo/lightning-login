@@ -4,12 +4,20 @@
     {
       "name": "Alby",
       "platform": ["Browser extension", "Web"],
-      "supportsAuth": true
+      "supportsAuth": true,
+      "notes": "Browser extension and web wallet with full LNURL-auth support."
     },
     {
       "name": "Breez",
       "platform": ["iOS", "Android"],
-      "supportsAuth": true
+      "supportsAuth": true,
+      "notes": "Mobile Lightning wallet with LNURL-auth support."
+    },
+    {
+      "name": "Wallet of Satoshi",
+      "platform": ["iOS", "Android", "Web"],
+      "supportsAuth": true,
+      "notes": "Popular mobile and web wallet with LNURL-auth support."
     },
     {
       "name": "Phoenix",
@@ -19,4 +27,3 @@
     }
   ]
 }
-

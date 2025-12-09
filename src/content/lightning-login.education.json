@@ -91,9 +91,9 @@
       "title": "Lightning Login: using your Bitcoin wallet as your key",
       "intro": "Lightning Login (LNURL-auth) is one way to move closer to sovereignty, especially for Bitcoin-native apps and communities.",
       "paragraphs": [
-        "LNURL-auth is a simple authentication protocol built on top of public-key cryptography, inspired by how Bitcoin wallets already work. Instead of passwords or email-based accounts, a service asks your wallet to sign a random challenge (k1) with a private key. If the signature checks out, the service knows it's you — without ever seeing your secret.",
-        "Under the hood, LNURL-auth derives domain-specific keys from your wallet seed. That means each website gets its own public key (often called a linkingKey), limiting how easily your activity can be correlated across services. If one site is compromised or goes bad, you can stop using that specific key without sacrificing others.",
-        "From a user perspective, Lightning Login feels like this: open a site, click 'Log in with Lightning', scan a QR code with your Lightning wallet, approve the login, and you're in — no passwords, no email confirmation.",
+        "LNURL-auth is a simple authentication protocol built on top of public-key cryptography, inspired by how Bitcoin wallets already work. Instead of passwords or email-based accounts, a service generates a random 32-byte challenge (called k1) and asks your wallet to sign it with a private key. If the signature checks out using ECDSA signature verification (the same cryptography securing Bitcoin), the service knows it's you — without ever seeing your secret.",
+        "Under the hood, LNURL-auth derives domain-specific keys from your wallet seed using BIP32-like hierarchical deterministic derivation. That means each website gets its own public key (often called a linking key), limiting how easily your activity can be correlated across services. The k1 challenge expires after 5 minutes and is single-use, preventing replay attacks. If one site is compromised or goes bad, you can stop using that specific key without sacrificing others.",
+        "From a user perspective, Lightning Login feels like this: open a site, click 'Log in with Lightning', scan a QR code (containing a bech32-encoded LNURL) with your Lightning wallet (like Breez, Alby, or Wallet of Satoshi), approve the login, and you're in — no passwords, no email confirmation. The QR code encodes the callback URL in a compact, wallet-friendly format.",
         "Because it is based on keys you already control in your Bitcoin wallet, Lightning Login leans towards pseudonymous identity by default. A site can choose to ask for extra information, but the base identity is a public key, not your government ID or corporate account."
       ],
       "bulletPoints": [
@@ -101,7 +101,7 @@
         "Domain-specific keys make it harder to track you across sites from the login layer alone.",
         "You can have multiple identities across different wallets or keys, which fits well with pseudonymous communities."
       ],
-      "takeaway": "Lightning Login is not 'the one true answer' to all identity problems, but it's a powerful tool if you already live in the Bitcoin / Lightning world and want logins that feel more like cryptographic ownership than corporate account rental."
+      "takeaway": "Lightning Login is not 'the one true answer' to all identity problems, but it's a powerful tool if you already live in the Bitcoin / Lightning world and want logins that feel more like cryptographic ownership than corporate account rental. For technical implementation details, see the Developer Documentation."
     },
     {
       "id": "tradeoffs-and-comparison",

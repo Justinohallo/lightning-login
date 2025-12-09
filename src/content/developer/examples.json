@@ -6,21 +6,21 @@
       "name": "Minimal Node LNURL-auth Server",
       "description": "This example demonstrates the bare minimum logic required to generate a challenge, encode an LNURL, and verify the signed callback.",
       "difficulty": "beginner",
-      "code": "```js\nimport crypto from 'crypto';\nimport lnurl from 'lnurl';\n\nconst k1 = crypto.randomBytes(32).toString('hex');\nconst lnurlAuth = lnurl.encode({ tag: 'login', k1, callback: 'https://yourserver.com/api/callback' });\n\n// Wallet signs: sign(k1)\n// Callback receives { key, sig, k1 }\n// Server verifies with lnurl.verifySignature(key, sig, k1)\n```"
+      "code": "```js\nimport crypto from 'crypto';\nimport lnurl from 'lnurl';\n\n// Generate 32-byte random challenge\nconst k1 = crypto.randomBytes(32).toString('hex');\n\n// Construct callback URL with query parameters\nconst callbackUrl = new URL('https://yourserver.com/api/callback');\ncallbackUrl.searchParams.set('tag', 'login');\ncallbackUrl.searchParams.set('k1', k1);\n\n// Encode to bech32 LNURL format\nconst lnurlAuth = lnurl.encode(callbackUrl.toString());\n\n// Store k1 temporarily (5-minute expiry recommended)\n// Wallet signs k1 and calls callback with { key, sig, k1 }\n// Server verifies with lnurl.verifyAuthorizationSignature(sig, k1, key)\n```"
     },
     {
       "id": "nextjs-handler",
       "name": "Next.js Route Handler Implementation",
       "description": "A clean Route Handler example using App Router for challenge generation and verification.",
       "difficulty": "intermediate",
-      "code": "```ts\nexport async function GET() {\n  const k1 = randomBytes(32).toString('hex');\n  // persist k1 in storage\n  const lnurl = encodeLNURL(k1);\n  return NextResponse.json({ k1, lnurl });\n}\n```"
+      "code": "```ts\nimport { NextResponse } from 'next/server';\nimport { randomBytes } from 'crypto';\nimport lnurl from 'lnurl';\n\n// Generate k1 challenge\nconst k1 = randomBytes(32).toString('hex');\n\n// Construct callback URL\nconst callbackUrl = new URL('https://yoursite.com/api/auth/callback');\ncallbackUrl.searchParams.set('tag', 'login');\ncallbackUrl.searchParams.set('k1', k1);\n\n// Encode to LNURL\nconst lnurlEncoded = lnurl.encode(callbackUrl.toString());\n\n// Store k1 temporarily (in-memory, Redis, or database)\n// with 5-minute expiration\n\nreturn NextResponse.json({ k1, lnurl: lnurlEncoded });\n```"
     },
     {
       "id": "nextauth-provider",
       "name": "NextAuth Custom Provider",
       "description": "A full custom provider enabling LNURL-auth login inside NextAuth for seamless integration with other OAuth flows.",
       "difficulty": "advanced",
-      "code": "```ts\nconst LightningProvider = {\n  id: 'lightning',\n  type: 'oauth',\n  async authorize(credentials) {\n    const { key } = credentials;\n    return { id: key };\n  }\n};\n```"
+      "code": "```ts\n// NextAuth custom provider for LNURL-auth\nconst LightningProvider = {\n  id: 'lightning',\n  name: 'Lightning Login',\n  type: 'credentials',\n  async authorize(credentials) {\n    const { key, sig, k1 } = credentials;\n    \n    // Verify k1 exists and not expired\n    // Verify signature: lnurl.verifyAuthorizationSignature(sig, k1, key)\n    \n    if (isValid) {\n      return { id: key }; // Public key as user identifier\n    }\n    return null;\n  }\n};\n```"
     }
   ]
 }
