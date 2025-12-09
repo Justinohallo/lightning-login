@@ -1,0 +1,640 @@
+{
+  "slides": [
+    {
+      "id": "implementation-intro",
+      "title": "Complete Implementation Walkthrough",
+      "content": [
+        {
+          "type": "text",
+          "value": "How Lightning Login works end-to-end"
+        },
+        {
+          "type": "text",
+          "value": "We'll examine actual code from this codebase"
+        },
+        {
+          "type": "text",
+          "value": "Understanding not just what happens, but why"
+        },
+        {
+          "type": "text",
+          "value": "How cryptography ensures security"
+        }
+      ]
+    },
+    {
+      "id": "core-concept",
+      "title": "The Core Concept",
+      "content": [
+        {
+          "type": "text",
+          "value": "Lightning Login replaces passwords with cryptographic signatures"
+        },
+        {
+          "type": "text",
+          "value": "Server generates a random challenge (k1)"
+        },
+        {
+          "type": "text",
+          "value": "Wallet proves ownership by signing it"
+        },
+        {
+          "type": "text",
+          "value": "Server verifies the signature"
+        },
+        {
+          "type": "text",
+          "value": "No credential databases, no password resets"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// Challenge-response pattern\nServer → Challenge (k1) → Wallet\nWallet → Signature → Server\nServer → Verify → Session"
+        }
+      ]
+    },
+    {
+      "id": "architecture-overview",
+      "title": "Three Main Components",
+      "content": [
+        {
+          "type": "text",
+          "value": "1. Frontend React components"
+        },
+        {
+          "type": "text",
+          "value": "   - Display QR codes"
+        },
+        {
+          "type": "text",
+          "value": "   - Manage authentication state"
+        },
+        {
+          "type": "text",
+          "value": "2. Backend API routes"
+        },
+        {
+          "type": "text",
+          "value": "   - Generate challenges"
+        },
+        {
+          "type": "text",
+          "value": "   - Verify signatures"
+        },
+        {
+          "type": "text",
+          "value": "   - Manage sessions"
+        },
+        {
+          "type": "text",
+          "value": "3. Session management"
+        },
+        {
+          "type": "text",
+          "value": "   - httpOnly cookies"
+        },
+        {
+          "type": "text",
+          "value": "   - Public key as identifier"
+        }
+      ]
+    },
+    {
+      "id": "step1-user-clicks",
+      "title": "Step 1: User Initiates Login",
+      "content": [
+        {
+          "type": "text",
+          "value": "User clicks 'Generate Login QR Code'"
+        },
+        {
+          "type": "text",
+          "value": "Frontend calls: GET /api/auth/lnurl"
+        },
+        {
+          "type": "text",
+          "value": "No parameters needed - server generates everything"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/app/demo/LoginPanel.tsx\nasync function start() {\n  const res = await fetch('/api/auth/lnurl');\n  const data = await res.json();\n  // data = { k1, lnurl }\n}"
+        }
+      ]
+    },
+    {
+      "id": "step2-generate-k1",
+      "title": "Step 2: Server Generates k1 Challenge",
+      "content": [
+        {
+          "type": "text",
+          "value": "32-byte random hex string (64 characters)"
+        },
+        {
+          "type": "text",
+          "value": "Cryptographically secure random number generation"
+        },
+        {
+          "type": "text",
+          "value": "Unpredictable - even seeing millions of previous k1s"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/lnurl/generateK1.ts\nimport { randomBytes } from 'crypto';\n\nexport function generateK1(): string {\n  return randomBytes(32).toString('hex');\n}\n\n// Example: 'f0373682e8b889c8d8ae195374d14257...'"
+        },
+        {
+          "type": "text",
+          "value": "Stored in memory with 5-minute expiration"
+        }
+      ]
+    },
+    {
+      "id": "step3-construct-url",
+      "title": "Step 3: Construct Callback URL",
+      "content": [
+        {
+          "type": "text",
+          "value": "Build callback URL with query parameters"
+        },
+        {
+          "type": "text",
+          "value": "tag=login (tells wallets this is LNURL-auth)"
+        },
+        {
+          "type": "text",
+          "value": "k1=<the challenge>"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "const callbackUrl = new URL(callback);\ncallbackUrl.searchParams.set('tag', 'login');\ncallbackUrl.searchParams.set('k1', k1);\n\n// Result: 'https://yoursite.com/api/auth/callback?tag=login&k1=f0373682...'"
+        },
+        {
+          "type": "text",
+          "value": "Standardized by LNURL-auth spec (LUD-04)"
+        }
+      ]
+    },
+    {
+      "id": "step4-encode-lnurl",
+      "title": "Step 4: Encode to LNURL (Bech32)",
+      "content": [
+        {
+          "type": "text",
+          "value": "Convert URL to bech32 format"
+        },
+        {
+          "type": "text",
+          "value": "Starts with 'lnurl1...' prefix"
+        },
+        {
+          "type": "text",
+          "value": "Why bech32?"
+        },
+        {
+          "type": "text",
+          "value": "  • Shorter than full URLs (QR-friendly)"
+        },
+        {
+          "type": "text",
+          "value": "  • Built-in error detection (checksums)"
+        },
+        {
+          "type": "text",
+          "value": "  • Human-readable"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/lnurl/encodeLNURL.ts\nimport lnurl from 'lnurl';\n\nconst lnurl = lnurl.encode(callbackUrl.toString());\n// Result: 'lnurl1dp68gurn8ghj7mrfva58gmnfdenj6mr0va5kutnrdakj7ctsdyhkzat5dqhk...'"
+        }
+      ]
+    },
+    {
+      "id": "step5-qr-code",
+      "title": "Step 5: Frontend Generates QR Code",
+      "content": [
+        {
+          "type": "text",
+          "value": "Frontend receives {k1, lnurl} from server"
+        },
+        {
+          "type": "text",
+          "value": "Generates QR code from LNURL string"
+        },
+        {
+          "type": "text",
+          "value": "Displays QR code to user"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/app/demo/LoginPanel.tsx\nconst qrData = await QRCode.toDataURL(data.lnurl);\nsetQr(qrData);\nsetStep('waiting');"
+        },
+        {
+          "type": "text",
+          "value": "Simultaneously connects WebSocket for real-time updates"
+        },
+        {
+          "type": "text",
+          "value": "Falls back to polling if WebSocket fails"
+        }
+      ]
+    },
+    {
+      "id": "step6-wallet-processes",
+      "title": "Step 6: Wallet Scans and Processes",
+      "content": [
+        {
+          "type": "text",
+          "value": "Wallet scans QR code"
+        },
+        {
+          "type": "text",
+          "value": "Decodes bech32 LNURL back to URL"
+        },
+        {
+          "type": "text",
+          "value": "Recognizes tag=login as LNURL-auth request"
+        },
+        {
+          "type": "text",
+          "value": "Derives domain-specific private key (BIP32-like)"
+        },
+        {
+          "type": "text",
+          "value": "Signs k1 challenge with ECDSA (secp256k1)"
+        },
+        {
+          "type": "text",
+          "value": "Calls callback: GET /callback?k1=...&key=...&sig=..."
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// Wallet does:\nconst privateKey = deriveDomainKey(domain);\nconst signature = sign(k1, privateKey);\n// Then calls callback URL"
+        }
+      ]
+    },
+    {
+      "id": "step7-server-receives",
+      "title": "Step 7: Server Receives Callback",
+      "content": [
+        {
+          "type": "text",
+          "value": "Callback handler receives GET request"
+        },
+        {
+          "type": "text",
+          "value": "Extracts three query parameters:"
+        },
+        {
+          "type": "text",
+          "value": "  • k1 (the challenge)"
+        },
+        {
+          "type": "text",
+          "value": "  • key (public key, hex-encoded)"
+        },
+        {
+          "type": "text",
+          "value": "  • sig (signature, hex-encoded)"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/app/api/auth/callback/route.ts\nconst { searchParams } = new URL(request.url);\nconst k1 = searchParams.get('k1');\nconst key = searchParams.get('key');\nconst sig = searchParams.get('sig');"
+        },
+        {
+          "type": "text",
+          "value": "Validates all parameters exist"
+        }
+      ]
+    },
+    {
+      "id": "step8-verify-k1",
+      "title": "Step 8: Verify k1 Challenge",
+      "content": [
+        {
+          "type": "text",
+          "value": "Look up k1 in pending logins store"
+        },
+        {
+          "type": "text",
+          "value": "Check: Does k1 exist?"
+        },
+        {
+          "type": "text",
+          "value": "Check: Has it expired? (> 5 minutes)"
+        },
+        {
+          "type": "text",
+          "value": "Check: Is status still 'pending'?"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/store/pendingLogins.ts\nconst pendingLogin = getPendingLogin(k1);\nif (!pendingLogin || pendingLogin.status === 'expired') {\n  return { status: 'ERROR', reason: 'Invalid or expired k1' };\n}"
+        },
+        {
+          "type": "text",
+          "value": "Prevents replay attacks"
+        }
+      ]
+    },
+    {
+      "id": "step9-verify-signature",
+      "title": "Step 9: Verify Cryptographic Signature",
+      "content": [
+        {
+          "type": "text",
+          "value": "ECDSA signature verification"
+        },
+        {
+          "type": "text",
+          "value": "Uses secp256k1 curve (same as Bitcoin)"
+        },
+        {
+          "type": "text",
+          "value": "Mathematical proof that:"
+        },
+        {
+          "type": "text",
+          "value": "  • Signer controls the private key"
+        },
+        {
+          "type": "text",
+          "value": "  • Signature is for this specific k1"
+        },
+        {
+          "type": "text",
+          "value": "  • k1 hasn't been modified"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/lnurl/verifySignature.ts\nimport lnurl from 'lnurl';\n\nconst isValid = lnurl.verifyAuthorizationSignature(\n  sig,    // signature\n  k1,     // challenge\n  pubkey  // public key\n);\n\n// Order matters: (sig, k1, pubkey)"
+        }
+      ]
+    },
+    {
+      "id": "step10-create-session",
+      "title": "Step 10: Create Session Cookie",
+      "content": [
+        {
+          "type": "text",
+          "value": "If signature is valid, create session"
+        },
+        {
+          "type": "text",
+          "value": "Set httpOnly cookie with public key"
+        },
+        {
+          "type": "text",
+          "value": "Cookie configuration:"
+        },
+        {
+          "type": "text",
+          "value": "  • httpOnly: true (XSS protection)"
+        },
+        {
+          "type": "text",
+          "value": "  • secure: true in production (HTTPS only)"
+        },
+        {
+          "type": "text",
+          "value": "  • sameSite: 'lax' (CSRF protection)"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/session/createSession.ts\n(await cookies()).set('ll-session', pubkey, {\n  httpOnly: true,\n  secure: process.env.NODE_ENV === 'production',\n  sameSite: 'lax',\n  path: '/'\n});"
+        },
+        {
+          "type": "text",
+          "value": "Public key becomes user identifier"
+        }
+      ]
+    },
+    {
+      "id": "step11-broadcast",
+      "title": "Step 11: Broadcast Success",
+      "content": [
+        {
+          "type": "text",
+          "value": "Send WebSocket message to connected clients"
+        },
+        {
+          "type": "text",
+          "value": "Message: {type: 'authenticated', k1, pubkey}"
+        },
+        {
+          "type": "text",
+          "value": "Frontend receives message immediately"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/lib/websocket/authStatusServer.ts\nbroadcastAuthSuccess(k1, key);\n\n// Frontend receives:\nws.onmessage = (event) => {\n  const msg = JSON.parse(event.data);\n  if (msg.type === 'authenticated') {\n    window.location.reload();\n  }\n};"
+        },
+        {
+          "type": "text",
+          "value": "Delete k1 from memory (single-use enforcement)"
+        }
+      ]
+    },
+    {
+      "id": "step12-detect-auth",
+      "title": "Step 12: Frontend Detects Authentication",
+      "content": [
+        {
+          "type": "text",
+          "value": "Two mechanisms:"
+        },
+        {
+          "type": "text",
+          "value": "1. WebSocket: Instant notification"
+        },
+        {
+          "type": "text",
+          "value": "2. Polling fallback: Checks /api/auth/status every 2s"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// Status endpoint checks:\n// 1. Session cookie first (works across instances)\n// 2. Falls back to pending login store\n\nconst sessionPubkey = await getSession();\nif (sessionPubkey) {\n  return { authenticated: true, pubkey: sessionPubkey };\n}"
+        },
+        {
+          "type": "text",
+          "value": "Dual-check ensures reliability in serverless/multi-instance deployments"
+        }
+      ]
+    },
+    {
+      "id": "step13-page-reload",
+      "title": "Step 13: Page Reload and Session Check",
+      "content": [
+        {
+          "type": "text",
+          "value": "After reload, page checks for session"
+        },
+        {
+          "type": "text",
+          "value": "Server component reads cookie"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/app/demo/page.tsx\nconst sessionPubkey = await getSession();\n\nif (sessionPubkey) {\n  return <LoggedIn pubkey={sessionPubkey} />;\n} else {\n  return <DemoContent />;\n}"
+        },
+        {
+          "type": "text",
+          "value": "Public key serves as user identifier"
+        },
+        {
+          "type": "text",
+          "value": "No database lookup needed"
+        }
+      ]
+    },
+    {
+      "id": "step14-display",
+      "title": "Step 14: Display Authenticated State",
+      "content": [
+        {
+          "type": "text",
+          "value": "Show user's public key"
+        },
+        {
+          "type": "text",
+          "value": "Provide logout button"
+        },
+        {
+          "type": "text",
+          "value": "Public key = proof of identity"
+        },
+        {
+          "type": "text",
+          "value": "Unique, derived from wallet, cannot be forged"
+        },
+        {
+          "type": "code",
+          "language": "typescript",
+          "value": "// src/app/demo/LoggedIn.tsx\nexport default function LoggedIn({ pubkey }) {\n  return (\n    <div>\n      <h1>Logged In!</h1>\n      <p>Pubkey: {pubkey}</p>\n      <button onClick={logout}>Logout</button>\n    </div>\n  );\n}"
+        }
+      ]
+    },
+    {
+      "id": "security-summary",
+      "title": "Security Features Summary",
+      "content": [
+        {
+          "type": "text",
+          "value": "Multiple layers of security:"
+        },
+        {
+          "type": "text",
+          "value": "1. Cryptographically random k1 (prevents prediction)"
+        },
+        {
+          "type": "text",
+          "value": "2. Time-limited (5 minutes, prevents stale reuse)"
+        },
+        {
+          "type": "text",
+          "value": "3. Single-use (prevents replay attacks)"
+        },
+        {
+          "type": "text",
+          "value": "4. ECDSA signature verification (cryptographic proof)"
+        },
+        {
+          "type": "text",
+          "value": "5. httpOnly cookies (XSS protection)"
+        },
+        {
+          "type": "text",
+          "value": "6. Secure cookies (HTTPS enforcement)"
+        },
+        {
+          "type": "text",
+          "value": "7. SameSite protection (CSRF mitigation)"
+        },
+        {
+          "type": "text",
+          "value": "8. Domain-specific keys (prevents cross-site correlation)"
+        }
+      ]
+    },
+    {
+      "id": "key-takeaways",
+      "title": "Key Takeaways",
+      "content": [
+        {
+          "type": "text",
+          "value": "Lightning Login is stateless except for session cookie"
+        },
+        {
+          "type": "text",
+          "value": "k1 challenge is single-use and time-limited"
+        },
+        {
+          "type": "text",
+          "value": "Authentication relies on cryptographic proof"
+        },
+        {
+          "type": "text",
+          "value": "Same cryptography securing Bitcoin transactions"
+        },
+        {
+          "type": "text",
+          "value": "Public key serves as user identifier"
+        },
+        {
+          "type": "text",
+          "value": "No usernames, emails, or password databases"
+        },
+        {
+          "type": "text",
+          "value": "Users control their identity through their wallet"
+        },
+        {
+          "type": "text",
+          "value": "Not through a centralized provider"
+        }
+      ]
+    },
+    {
+      "id": "next-steps",
+      "title": "Next Steps",
+      "content": [
+        {
+          "type": "text",
+          "value": "Explore the codebase"
+        },
+        {
+          "type": "text",
+          "value": "Try the demo: /demo"
+        },
+        {
+          "type": "text",
+          "value": "Read developer docs: /developer"
+        },
+        {
+          "type": "text",
+          "value": "Check out integration patterns"
+        },
+        {
+          "type": "text",
+          "value": "See code examples"
+        },
+        {
+          "type": "text",
+          "value": "Build your own Lightning Login!"
+        }
+      ]
+    }
+  ]
+}
+

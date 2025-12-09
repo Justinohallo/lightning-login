@@ -1,19 +1,17 @@
 "use client";
 
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import workshopData from "@/content/workshop.json";
 
-const totalSlides = workshopData.slides.length;
+type WorkshopNavigationProps = {
+  workshopKey: string;
+  totalSlides: number;
+  currentIndex: number;
+  goToSlide: (index: number) => void;
+};
 
-function WorkshopNavigationContent() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const currentIndex = parseInt(params.get("index") ?? "0", 10);
-
+function WorkshopNavigationContent({ totalSlides, currentIndex, goToSlide }: WorkshopNavigationProps) {
   const goTo = (idx: number) => {
-    const clamped = Math.max(0, Math.min(idx, totalSlides - 1));
-    router.push(`/workshop?index=${clamped}`);
+    goToSlide(idx);
   };
 
   return (
@@ -41,10 +39,10 @@ function WorkshopNavigationContent() {
   );
 }
 
-export default function WorkshopNavigation() {
+export default function WorkshopNavigation({ workshopKey, totalSlides, currentIndex, goToSlide }: WorkshopNavigationProps) {
   return (
     <Suspense fallback={null}>
-      <WorkshopNavigationContent />
+      <WorkshopNavigationContent workshopKey={workshopKey} totalSlides={totalSlides} currentIndex={currentIndex} goToSlide={goToSlide} />
     </Suspense>
   );
 }

@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { type WorkshopSlide } from "@/lib/types/content";
 
 type SlideProps = {
@@ -21,12 +25,21 @@ export default function Slide({ slide }: SlideProps) {
 
           if (item.type === "code") {
             return (
-              <pre
-                key={idx}
-                className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg overflow-x-auto text-lg"
-              >
-                <code>{item.value}</code>
-              </pre>
+              <div key={idx} className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                <SyntaxHighlighter
+                  language={item.language || "typescript"}
+                  style={oneLight}
+                  customStyle={{
+                    margin: 0,
+                    padding: "1.5rem",
+                    fontSize: "1.125rem",
+                    lineHeight: "1.75",
+                    background: "transparent",
+                  }}
+                >
+                  {item.value}
+                </SyntaxHighlighter>
+              </div>
             );
           }
 
