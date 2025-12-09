@@ -1,0 +1,62 @@
+{
+  "patterns": [
+    {
+      "id": "nextjs-app-router",
+      "name": "Next.js App Router Integration",
+      "useCase": "Most modern fullstack React applications.",
+      "steps": [
+        "Use a Route Handler for generating LNURL challenges",
+        "Store k1 and expire after 5 minutes",
+        "Build QR code on client using LNURL",
+        "Implement callback endpoint for signature verification",
+        "Create session cookie on success",
+        "Redirect back to the app"
+      ],
+      "pros": [
+        "Most flexible option",
+        "Good separation between server and client",
+        "Compatible with RSC"
+      ],
+      "cons": [
+        "More boilerplate for session management",
+        "Edge runtime crypto libraries may not fully support LNURL"
+      ]
+    },
+    {
+      "id": "nextauth-provider",
+      "name": "NextAuth Provider",
+      "useCase": "Apps already using NextAuth for OAuth or credentials.",
+      "steps": [
+        "Create custom NextAuth provider",
+        "Provider triggers LNURL challenge endpoint",
+        "Callback verification maps pubkey → user",
+        "NextAuth persists session automatically"
+      ],
+      "pros": [
+        "Integrates cleanly with existing auth methods",
+        "Sessions and cookies handled automatically",
+        "Best DX for larger teams"
+      ],
+      "cons": [
+        "Requires deeper understanding of NextAuth providers",
+        "Harder to customize the login flow"
+      ]
+    },
+    {
+      "id": "express-api",
+      "name": "Express API Middleware",
+      "useCase": "Node backends without React.",
+      "steps": [
+        "Create /auth/lnurl endpoint",
+        "Generate and store k1",
+        "Return encoded LNURL",
+        "Verify callback signature",
+        "Set session or JWT",
+        "Return auth status"
+      ],
+      "pros": ["Simple", "Fast", "Low overhead"],
+      "cons": ["No built-in session handling", "Manual validation required"]
+    }
+  ]
+}
+

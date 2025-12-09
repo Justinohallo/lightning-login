@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2025-01-01",
+  "wallets": [
+    {
+      "name": "Alby",
+      "platform": ["Browser extension", "Web"],
+      "supportsAuth": true
+    },
+    {
+      "name": "Breez",
+      "platform": ["iOS", "Android"],
+      "supportsAuth": true
+    },
+    {
+      "name": "Phoenix",
+      "platform": ["iOS", "Android"],
+      "supportsAuth": false,
+      "notes": "Expected LNURL-auth support in future versions."
+    }
+  ]
+}
+

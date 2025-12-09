@@ -1,0 +1,27 @@
+{
+  "title": "Implementation Examples",
+  "examples": [
+    {
+      "id": "simple-node",
+      "name": "Simple Node.js LNURL-auth Server",
+      "description": "A minimal example showing how to generate k1, encode LNURL, and verify signatures.",
+      "difficulty": "beginner",
+      "code": "```js\nimport lnurl from 'lnurl';\nimport crypto from 'crypto';\nconst k1 = crypto.randomBytes(32).toString('hex');\n// encode & return LNURL to client\n```"
+    },
+    {
+      "id": "nextjs-route-handler",
+      "name": "Next.js Route Handler Implementation",
+      "description": "Uses App Router to generate LNURL and verify signatures via API Routes.",
+      "difficulty": "intermediate",
+      "code": "```ts\nexport async function GET(req: Request) {\n  const k1 = crypto.randomBytes(32).toString('hex');\n  return NextResponse.json({ lnurl, k1 });\n}\n```"
+    },
+    {
+      "id": "nextauth-provider",
+      "name": "Custom NextAuth Provider",
+      "description": "Full LNURL-auth provider for NextAuth.",
+      "difficulty": "advanced",
+      "code": "```ts\nconst LightningProvider = {\n  id: 'lightning',\n  type: 'oauth',\n  async profile(pubkey) {\n    return { id: pubkey };\n  }\n};\n```"
+    }
+  ]
+}
+

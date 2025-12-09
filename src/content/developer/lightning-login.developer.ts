@@ -76,10 +76,10 @@ export const lightningLoginDeveloperContent = {
           code: `export async function GET() {
   // Generate random k1 challenge
   const k1 = crypto.randomBytes(32).toString('hex');
-  
+
   // Store k1 temporarily (in-memory or Redis)
   // Store with expiration (e.g., 5 minutes)
-  
+
   // Return LNURL response
   return Response.json({
     tag: 'login',

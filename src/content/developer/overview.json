@@ -1,0 +1,43 @@
+{
+  "title": "Developer Guide: Lightning Login (LNURL-auth)",
+  "summary": "Lightning Login is a passwordless authentication protocol based on signed challenge–response using wallet-derived keys. This guide explains the protocol, implementation patterns, security considerations, and production best practices.",
+  "sections": [
+    {
+      "id": "identity-problem",
+      "title": "The Identity Problem",
+      "description": "Traditional authentication methods centralize control and expose users to risk.",
+      "items": [
+        "Passwords leak and get reused",
+        "Email-based accounts rely on corporate gatekeepers",
+        "OAuth identity flows leak metadata to identity providers",
+        "Users cannot rotate identities freely",
+        "Apps must store sensitive credentials"
+      ]
+    },
+    {
+      "id": "why-lnurl-auth",
+      "title": "Why LNURL-auth?",
+      "description": "LNURL-auth introduces a global, pseudonymous, user-controlled identity primitive.",
+      "items": [
+        "Users authenticate using Bitcoin wallet keys",
+        "Keypairs are derived per-domain — no cross-site linkability",
+        "No emails, usernames, or personal data required",
+        "Servers never store secrets capable of authentication",
+        "The flow is simple: scan → sign → authenticate"
+      ]
+    },
+    {
+      "id": "developer-outcomes",
+      "title": "What Developers Get",
+      "description": "LNURL-auth simplifies backend logic and improves security dramatically.",
+      "items": [
+        "No credential storage",
+        "Simple signature verification logic",
+        "Easier multi-user onboarding",
+        "Higher privacy guarantees for users",
+        "Clean integration with modern app architectures"
+      ]
+    }
+  ]
+}
+

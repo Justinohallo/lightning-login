@@ -1,70 +1,37 @@
-import { type Metadata } from "next";
-import Link from "next/link";
-import { getDeveloperContent } from "@/lib/content/getDeveloperContent";
-import { ContentPageHeader } from "@/app/components/ContentPageHeader";
-import { DeveloperSectionRenderer } from "./components/DeveloperSectionRenderer";
-import { DevNavigation } from "./components/DevNavigation";
-import { WorkshopModeToggle } from "./components/WorkshopModeToggle";
-import { env } from "@/lib/env";
-
-export function generateMetadata(): Metadata {
-  const content = getDeveloperContent();
-  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
-
-  return {
-    title: `${content.title} | Lightning Login`,
-    description: content.tagline,
-    openGraph: {
-      title: content.title,
-      description: content.tagline,
-      url: `${baseUrl}/developer`,
-      siteName: "Lightning Login",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: content.title,
-      description: content.tagline,
-    },
-  };
-}
+import { CodeExample } from "@/components/developer/CodeExample";
+import { DeveloperHeader } from "@/components/developer/DeveloperHeader";
+import { DeveloperSection } from "@/components/developer/DeveloperSection";
+import { WalletSupportTable } from "@/components/developer/WalletSupportTable";
+import deepDive from "@/content/developer/deep-dive.json";
+import examples from "@/content/developer/examples.json";
+import overview from "@/content/developer/overview.json";
+import patterns from "@/content/developer/integration-patterns.json";
+import wallets from "@/content/developer/wallets.json";
 
 export default function DeveloperPage() {
-  const content = getDeveloperContent();
-
   return (
-    <>
-      <div className="max-w-4xl mx-auto py-12 px-6">
-        <div className="flex flex-col md:flex-row gap-8">
-          <DevNavigation
-            sections={content.sections}
-            navOrder={content.navOrder}
-          />
-          <div className="flex-1">
-            <ContentPageHeader
-              title={content.title}
-              tagline={content.tagline}
-            />
-            <div className="mt-8 mb-12 text-center">
-              <Link
-                href="/workshop?index=0"
-                className="inline-block mt-8 bg-yellow-300 hover:bg-yellow-400 px-6 py-3 rounded-lg text-black font-medium transition-colors"
-              >
-                Start Workshop
-              </Link>
-            </div>
-            <div className="space-y-12">
-              {content.sections.map((section) => (
-                <DeveloperSectionRenderer
-                  key={section.id}
-                  section={section}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <WorkshopModeToggle />
-    </>
+    <div className="max-w-4xl mx-auto py-20 px-6">
+      <DeveloperHeader title={overview.title} summary={overview.summary} />
+
+      {overview.sections.map(sec => (
+        <DeveloperSection key={sec.id} {...sec} />
+      ))}
+
+      <h2 className="text-3xl font-bold mt-16">Technical Deep Dive</h2>
+      <ul className="list-disc ml-6 mt-4 space-y-2">
+        {deepDive.flowDiagramSteps.map((s, i) => <li key={i}>{s}</li>)}
+      </ul>
+
+      <h2 className="text-3xl font-bold mt-16">Integration Patterns</h2>
+      {patterns.patterns.map(p => (
+        <DeveloperSection key={p.id} title={p.name} description={p.useCase} items={p.steps} />
+      ))}
+
+      <h2 className="text-3xl font-bold mt-16">Examples</h2>
+      {examples.examples.map(ex => <CodeExample key={ex.id} {...ex} />)}
+
+      <h2 className="text-3xl font-bold mt-16">Wallet Support</h2>
+      <WalletSupportTable wallets={wallets.wallets} />
+    </div>
   );
 }

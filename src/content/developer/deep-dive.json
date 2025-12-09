@@ -1,0 +1,39 @@
+{
+  "protocolName": "LNURL-auth",
+  "overview": "LNURL-auth is a challenge–response authentication protocol built on wallet-derived public keys. The server issues a challenge (k1), the wallet signs it with a domain-specific private key, and the server verifies it.",
+  "flowDiagramSteps": [
+    "1. User requests login",
+    "2. Server generates random 32-byte k1 challenge",
+    "3. Server encodes login request as LNURL",
+    "4. Wallet scans LNURL and derives a domain-specific keypair",
+    "5. Wallet signs k1 and sends (key, sig) to callback",
+    "6. Server verifies signature",
+    "7. Server creates session for that pubkey",
+    "8. User is logged in"
+  ],
+  "cryptography": {
+    "keys": "Wallets derive a separate keypair for each domain using LNURL-auth key derivation functions.",
+    "signatures": "The signature is Ed25519 or Secp256k1 depending on the wallet's cryptographic backend.",
+    "challengeResponse": "The wallet must prove possession of the private key by signing a server-provided k1."
+  },
+  "serverResponsibilities": [
+    "Generate secure random k1 values",
+    "Bind k1 to a short-lived record in storage or memory",
+    "Verify signatures using wallet-provided pubkey",
+    "Create user records mapped to pubkeys",
+    "Enforce expiration and replay-prevention of k1 challenges"
+  ],
+  "walletResponsibilities": [
+    "Derive per-domain keys",
+    "Prompt user for approval",
+    "Sign the challenge",
+    "Send callback to the server"
+  ],
+  "risks": [
+    "If k1 is not expired quickly, replay attacks are possible",
+    "If pubkey is reused outside LNURL-auth, linkability increases",
+    "Servers must validate signatures with reliable libraries",
+    "Session security still depends on your session framework"
+  ]
+}
+
