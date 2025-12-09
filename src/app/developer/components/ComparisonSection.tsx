@@ -1,8 +1,8 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type DevComparisonSection as DevComparisonSectionType } from "@/lib/content-schemas/lightning-login-developer";
 import { DevComparisonTable } from "./DevComparisonTable";
 
 type ComparisonSectionProps = {
-  section: DeveloperSection & { kind: "comparison" };
+  section: DevComparisonSectionType;
 };
 
 export function ComparisonSection({ section }: ComparisonSectionProps) {

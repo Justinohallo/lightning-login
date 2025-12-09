@@ -1,11 +1,35 @@
+import { type Metadata } from "next";
 import { getDeveloperContent } from "@/lib/content/getDeveloperContent";
 import { ContentPageHeader } from "@/app/components/ContentPageHeader";
 import { DeveloperSectionRenderer } from "./components/DeveloperSectionRenderer";
 import { DevNavigation } from "./components/DevNavigation";
 import { WorkshopModeToggle } from "./components/WorkshopModeToggle";
+import { env } from "@/lib/env";
 
-export default async function DeveloperPage() {
-  const content = await getDeveloperContent();
+export function generateMetadata(): Metadata {
+  const content = getDeveloperContent();
+  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
+
+  return {
+    title: `${content.title} | Lightning Login`,
+    description: content.tagline,
+    openGraph: {
+      title: content.title,
+      description: content.tagline,
+      url: `${baseUrl}/developer`,
+      siteName: "Lightning Login",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.title,
+      description: content.tagline,
+    },
+  };
+}
+
+export default function DeveloperPage() {
+  const content = getDeveloperContent();
 
   return (
     <>

@@ -1,7 +1,7 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type StepByStepSection as StepByStepSectionType } from "@/lib/content-schemas/lightning-login-developer";
 
 type StepByStepSectionProps = {
-  section: DeveloperSection & { kind: "step-by-step" };
+  section: StepByStepSectionType;
 };
 
 export function StepByStepSection({ section }: StepByStepSectionProps) {

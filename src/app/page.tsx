@@ -1,8 +1,32 @@
+import { type Metadata } from "next";
 import Link from "next/link";
 import { getEducationContent } from "@/lib/content/getEducationContent";
+import { env } from "@/lib/env";
 
-export default async function Home() {
-  const content = await getEducationContent();
+export function generateMetadata(): Metadata {
+  const content = getEducationContent();
+  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
+
+  return {
+    title: content.title,
+    description: content.tagline,
+    openGraph: {
+      title: content.title,
+      description: content.tagline,
+      url: baseUrl,
+      siteName: "Lightning Login",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.title,
+      description: content.tagline,
+    },
+  };
+}
+
+export default function Home() {
+  const content = getEducationContent();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">

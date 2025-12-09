@@ -1,7 +1,7 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type LibrarySection as LibrarySectionType } from "@/lib/content-schemas/lightning-login-developer";
 
 type LibrarySectionProps = {
-  section: DeveloperSection & { kind: "library" };
+  section: LibrarySectionType;
 };
 
 export function LibrarySection({ section }: LibrarySectionProps) {

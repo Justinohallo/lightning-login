@@ -41,20 +41,80 @@ export const SectionKindEnum = z.enum([
   "glossary",
 ]);
 
-export const EducationSectionSchema = z.object({
+// Base section schema with common fields
+const BaseEducationSectionSchema = z.object({
   id: z.string(),
-  kind: SectionKindEnum,
   title: z.string(),
   intro: z.string().optional(),
   paragraphs: z.array(z.string()).default([]),
-  bullets: z.array(z.string()).optional(), // for hero-style bullets
-  bulletPoints: z.array(z.string()).optional(), // for content lists
-  comparisonTable: ComparisonTableSchema.optional(),
+});
+
+// Specific section schemas for discriminated union
+const HeroSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("hero"),
+  bullets: z.array(z.string()).optional(),
+  callToAction: CallToActionSchema.optional(),
+});
+
+const ProblemSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("problem"),
+  bulletPoints: z.array(z.string()).optional(),
+  takeaway: z.string().optional(),
+});
+
+const EvolutionSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("evolution"),
+  bulletPoints: z.array(z.string()).optional(),
+  takeaway: z.string().optional(),
+});
+
+const ConceptSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("concept"),
+  bulletPoints: z.array(z.string()).optional(),
+  takeaway: z.string().optional(),
+});
+
+const TechnologySectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("technology"),
+  bulletPoints: z.array(z.string()).optional(),
+  takeaway: z.string().optional(),
+});
+
+const ComparisonSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("comparison"),
+  comparisonTable: ComparisonTableSchema,
+  takeaway: z.string().optional(),
+});
+
+const SummarySectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("summary"),
+  bulletPoints: z.array(z.string()).optional(),
   takeaway: z.string().optional(),
   callToAction: CallToActionSchema.optional(),
-  faqItems: z.array(FaqItemSchema).optional(),
-  glossaryItems: z.array(GlossaryItemSchema).optional(),
 });
+
+const FaqSectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("faq"),
+  faqItems: z.array(FaqItemSchema),
+});
+
+const GlossarySectionSchema = BaseEducationSectionSchema.extend({
+  kind: z.literal("glossary"),
+  glossaryItems: z.array(GlossaryItemSchema),
+});
+
+// Discriminated union for all section types
+export const EducationSectionSchema = z.discriminatedUnion("kind", [
+  HeroSectionSchema,
+  ProblemSectionSchema,
+  EvolutionSectionSchema,
+  ConceptSectionSchema,
+  TechnologySectionSchema,
+  ComparisonSectionSchema,
+  SummarySectionSchema,
+  FaqSectionSchema,
+  GlossarySectionSchema,
+]);
 
 export const CtaStripSchema = z.object({
   title: z.string(),
@@ -84,4 +144,15 @@ export type LightningLoginEducation = z.infer<
 export type EducationSection = z.infer<typeof EducationSectionSchema>;
 export type FaqItem = z.infer<typeof FaqItemSchema>;
 export type GlossaryItem = z.infer<typeof GlossaryItemSchema>;
+
+// Specific section types for type narrowing
+export type HeroSection = z.infer<typeof HeroSectionSchema>;
+export type ProblemSection = z.infer<typeof ProblemSectionSchema>;
+export type EvolutionSection = z.infer<typeof EvolutionSectionSchema>;
+export type ConceptSection = z.infer<typeof ConceptSectionSchema>;
+export type TechnologySection = z.infer<typeof TechnologySectionSchema>;
+export type ComparisonSection = z.infer<typeof ComparisonSectionSchema>;
+export type SummarySection = z.infer<typeof SummarySectionSchema>;
+export type FaqSection = z.infer<typeof FaqSectionSchema>;
+export type GlossarySection = z.infer<typeof GlossarySectionSchema>;
 

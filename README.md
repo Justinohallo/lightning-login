@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lightning Login Demo App
+
+A Next.js application demonstrating Lightning Login (LNURL-auth) for sovereign authentication. This app provides educational content, developer documentation, and a live demo of Lightning Login authentication.
+
+## Overview
+
+This application serves three main purposes:
+
+1. **Education** - Explains Lightning Login to non-developers with clear, accessible content
+2. **Developer Documentation** - Provides technical guides and code examples for developers
+3. **Live Demo** - Allows users to authenticate using their Lightning wallet
+
+## Architecture
+
+### Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **Validation**: Zod
+- **Content Management**: Type-safe content schemas with runtime validation
+
+### Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages and layouts
+│   ├── components/         # Shared components (Navigation, CTAStrip, etc.)
+│   ├── education/          # Education page and section components
+│   ├── developer/          # Developer docs pages and components
+│   ├── demo/               # Demo page
+│   ├── sites/              # Sites listing page
+│   └── workshop/           # Workshop/presentation page
+├── content/                # Content files (TypeScript objects)
+│   ├── lightning-login.education.ts
+│   └── developer/
+│       └── lightning-login.developer.ts
+├── lib/
+│   ├── content/            # Content getters with validation
+│   ├── content-schemas/    # Zod schemas for content validation
+│   ├── schemas/            # Re-exported schemas
+│   ├── types/              # Central type exports
+│   └── env.ts              # Environment variable validation
+└── scripts/
+    └── validate-content.ts # Content validation script
+```
+
+### Content Management
+
+Content is managed through TypeScript files in the `src/content/` directory. All content is validated at build time and runtime using Zod schemas with discriminated unions for type safety.
+
+- **Education Content**: `src/content/lightning-login.education.ts`
+- **Developer Content**: `src/content/developer/lightning-login.developer.ts`
+
+Content getters (`getEducationContent`, `getDeveloperContent`) use React's `cache()` for memoization and include error handling.
+
+### Type Safety
+
+The application uses discriminated unions for section types, eliminating the need for type assertions. Each section kind has its own schema and TypeScript type, ensuring compile-time and runtime type safety.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+### Start Production Server
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Content Validation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Validate all content files before committing:
 
-## Deploy on Vercel
+```bash
+npm run validate
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Environment Variables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create a `.env.local` file (see `.env.example` for template):
+
+```env
+NEXT_PUBLIC_BASE_URL=https://lightning-login.com
+```
+
+- `NEXT_PUBLIC_BASE_URL` - Base URL for the application (used in sitemap and metadata). Defaults to `https://lightning-login.com` if not set.
+
+## Features
+
+### Static Generation
+
+All pages use static generation where possible:
+- Home page
+- Education page
+- Developer documentation pages
+- Dynamic developer section pages (via `generateStaticParams`)
+
+### SEO Optimization
+
+All pages include:
+- Dynamic metadata generation
+- Open Graph tags
+- Twitter Card tags
+- Proper canonical URLs
+
+### Error Handling
+
+- Global error boundary (`src/app/error.tsx`)
+- Custom 404 page (`src/app/not-found.tsx`)
+- Content validation error handling
+
+### Type Safety
+
+- Discriminated unions for section types
+- Runtime validation with Zod
+- Centralized type exports (`src/lib/types/index.ts`)
+
+## Content Schema
+
+Content is validated using Zod schemas with discriminated unions:
+
+- **Education Sections**: hero, problem, evolution, concept, technology, comparison, summary, faq, glossary
+- **Developer Sections**: overview, architecture, protocol, code-example, library, comparison, step-by-step, faq
+
+Each section type has specific required and optional fields defined in the schema.
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run validate` - Validate all content files
+
+## Contributing
+
+1. Make changes to content files in `src/content/`
+2. Run `npm run validate` to ensure content is valid
+3. Run `npm run build` to verify the build succeeds
+4. Follow conventional commit methodology
+
+## License
+
+Private project.

@@ -1,7 +1,7 @@
-import { type EducationSection } from "@/lib/schemas/educationSchema";
+import { type ComparisonSection as ComparisonSectionType } from "@/lib/content-schemas/lightning-login-education";
 
 type ComparisonSectionProps = {
-  section: EducationSection & { kind: "comparison" };
+  section: ComparisonSectionType;
 };
 
 export function ComparisonSection({ section }: ComparisonSectionProps) {

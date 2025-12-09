@@ -1,8 +1,9 @@
 import { MetadataRoute } from "next";
 import { getDeveloperContent } from "@/lib/content/getDeveloperContent";
+import { env } from "@/lib/env";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://lightning-login.com";
+  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -45,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamic developer routes
-  const developerContent = await getDeveloperContent();
+  const developerContent = getDeveloperContent();
   const developerRoutes: MetadataRoute.Sitemap = developerContent.sections.map(
     (section) => ({
       url: `${baseUrl}/developer/${section.slug}`,

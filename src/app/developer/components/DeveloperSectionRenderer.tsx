@@ -17,53 +17,21 @@ export function DeveloperSectionRenderer({
 }: DeveloperSectionRendererProps) {
   switch (section.kind) {
     case "overview":
-      return (
-        <OverviewSection
-          section={section as DeveloperSection & { kind: "overview" }}
-        />
-      );
+      return <OverviewSection section={section} />;
     case "architecture":
-      return (
-        <ArchitectureSection
-          section={section as DeveloperSection & { kind: "architecture" }}
-        />
-      );
+      return <ArchitectureSection section={section} />;
     case "protocol":
-      return (
-        <ProtocolSection
-          section={section as DeveloperSection & { kind: "protocol" }}
-        />
-      );
+      return <ProtocolSection section={section} />;
     case "code-example":
-      return (
-        <CodeExampleSection
-          section={section as DeveloperSection & { kind: "code-example" }}
-        />
-      );
+      return <CodeExampleSection section={section} />;
     case "library":
-      return (
-        <LibrarySection
-          section={section as DeveloperSection & { kind: "library" }}
-        />
-      );
+      return <LibrarySection section={section} />;
     case "comparison":
-      return (
-        <ComparisonSection
-          section={section as DeveloperSection & { kind: "comparison" }}
-        />
-      );
+      return <ComparisonSection section={section} />;
     case "step-by-step":
-      return (
-        <StepByStepSection
-          section={section as DeveloperSection & { kind: "step-by-step" }}
-        />
-      );
+      return <StepByStepSection section={section} />;
     case "faq":
-      return (
-        <FaqSection
-          section={section as DeveloperSection & { kind: "faq" }}
-        />
-      );
+      return <FaqSection section={section} />;
     default:
       return null;
   }

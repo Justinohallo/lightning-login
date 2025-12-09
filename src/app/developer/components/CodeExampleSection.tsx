@@ -1,8 +1,8 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type CodeExampleSection as CodeExampleSectionType } from "@/lib/content-schemas/lightning-login-developer";
 import { DevCodeBlock } from "./DevCodeBlock";
 
 type CodeExampleSectionProps = {
-  section: DeveloperSection & { kind: "code-example" };
+  section: CodeExampleSectionType;
 };
 
 export function CodeExampleSection({ section }: CodeExampleSectionProps) {

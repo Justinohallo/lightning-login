@@ -1,7 +1,7 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type ArchitectureSection as ArchitectureSectionType } from "@/lib/content-schemas/lightning-login-developer";
 
 type ArchitectureSectionProps = {
-  section: DeveloperSection & { kind: "architecture" };
+  section: ArchitectureSectionType;
 };
 
 export function ArchitectureSection({ section }: ArchitectureSectionProps) {

@@ -1,7 +1,7 @@
-import { type EducationSection } from "@/lib/schemas/educationSchema";
+import { type ConceptSection as ConceptSectionType } from "@/lib/content-schemas/lightning-login-education";
 
 type ConceptSectionProps = {
-  section: EducationSection & { kind: "concept" };
+  section: ConceptSectionType;
 };
 
 export function ConceptSection({ section }: ConceptSectionProps) {

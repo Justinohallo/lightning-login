@@ -1,8 +1,8 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type ProtocolSection as ProtocolSectionType } from "@/lib/content-schemas/lightning-login-developer";
 import { DevCodeBlock } from "./DevCodeBlock";
 
 type ProtocolSectionProps = {
-  section: DeveloperSection & { kind: "protocol" };
+  section: ProtocolSectionType;
 };
 
 export function ProtocolSection({ section }: ProtocolSectionProps) {

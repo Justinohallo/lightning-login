@@ -3,12 +3,47 @@ import { DeveloperContentSchema } from "@/lib/schemas/developerSchema";
 import { lightningLoginEducation } from "@/content/lightning-login.education";
 import { lightningLoginDeveloperContent } from "@/content/developer/lightning-login.developer";
 
+function formatZodError(error: unknown): string {
+  if (error && typeof error === "object" && "issues" in error) {
+    const zodError = error as { issues: Array<{ path: (string | number)[]; message: string }> };
+    return zodError.issues
+      .map((issue) => {
+        const path = issue.path.join(".");
+        return `  - ${path ? `${path}: ` : ""}${issue.message}`;
+      })
+      .join("\n");
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+console.log("Validating content files...\n");
+
+let hasErrors = false;
+
+// Validate education content
 try {
   LightningLoginEducationSchema.parse(lightningLoginEducation);
-  DeveloperContentSchema.parse(lightningLoginDeveloperContent);
-  console.log("All content files validated successfully!");
+  console.log("✓ Education content validated successfully");
 } catch (error) {
-  console.error("Validation failed:", error);
+  console.error("✗ Education content validation failed:");
+  console.error(formatZodError(error));
+  hasErrors = true;
+}
+
+// Validate developer content
+try {
+  DeveloperContentSchema.parse(lightningLoginDeveloperContent);
+  console.log("✓ Developer content validated successfully");
+} catch (error) {
+  console.error("✗ Developer content validation failed:");
+  console.error(formatZodError(error));
+  hasErrors = true;
+}
+
+if (hasErrors) {
+  console.error("\n❌ Content validation failed. Please fix the errors above.");
   process.exit(1);
 }
+
+console.log("\n✅ All content files validated successfully!");
 

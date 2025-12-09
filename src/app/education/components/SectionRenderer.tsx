@@ -16,23 +16,23 @@ type SectionRendererProps = {
 export function SectionRenderer({ section }: SectionRendererProps) {
   switch (section.kind) {
     case "hero":
-      return <HeroSection section={section as EducationSection & { kind: "hero" }} />;
+      return <HeroSection section={section} />;
     case "problem":
-      return <ProblemSection section={section as EducationSection & { kind: "problem" }} />;
+      return <ProblemSection section={section} />;
     case "evolution":
-      return <EvolutionSection section={section as EducationSection & { kind: "evolution" }} />;
+      return <EvolutionSection section={section} />;
     case "concept":
-      return <ConceptSection section={section as EducationSection & { kind: "concept" }} />;
+      return <ConceptSection section={section} />;
     case "technology":
-      return <TechnologySection section={section as EducationSection & { kind: "technology" }} />;
+      return <TechnologySection section={section} />;
     case "comparison":
-      return <ComparisonSection section={section as EducationSection & { kind: "comparison" }} />;
+      return <ComparisonSection section={section} />;
     case "summary":
-      return <SummarySection section={section as EducationSection & { kind: "summary" }} />;
+      return <SummarySection section={section} />;
     case "faq":
-      return <FaqSection items={section.faqItems!} />;
+      return <FaqSection items={section.faqItems} />;
     case "glossary":
-      return <GlossarySection items={section.glossaryItems!} />;
+      return <GlossarySection items={section.glossaryItems} />;
     default:
       return null;
   }

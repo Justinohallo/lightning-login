@@ -1,4 +1,30 @@
+import { type Metadata } from "next";
 import { sites } from "@/content/sites";
+import { env } from "@/lib/env";
+
+export function generateMetadata(): Metadata {
+  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
+
+  return {
+    title: "Sites Supporting Lightning Login | Lightning Login",
+    description:
+      "Discover websites and applications that use Lightning Login (LNURL-auth) for sovereign authentication.",
+    openGraph: {
+      title: "Sites Supporting Lightning Login",
+      description:
+        "Discover websites and applications that use Lightning Login (LNURL-auth) for sovereign authentication.",
+      url: `${baseUrl}/sites`,
+      siteName: "Lightning Login",
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: "Sites Supporting Lightning Login",
+      description:
+        "Discover websites and applications that use Lightning Login (LNURL-auth) for sovereign authentication.",
+    },
+  };
+}
 
 export default function SitesPage() {
   return (

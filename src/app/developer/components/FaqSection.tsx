@@ -1,7 +1,7 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type DevFaqSection as DevFaqSectionType } from "@/lib/content-schemas/lightning-login-developer";
 
 type FaqSectionProps = {
-  section: DeveloperSection & { kind: "faq" };
+  section: DevFaqSectionType;
 };
 
 export function FaqSection({ section }: FaqSectionProps) {

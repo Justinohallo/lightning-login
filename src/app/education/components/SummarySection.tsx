@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { type EducationSection } from "@/lib/schemas/educationSchema";
+import { type SummarySection as SummarySectionType } from "@/lib/content-schemas/lightning-login-education";
 
 type SummarySectionProps = {
-  section: EducationSection & { kind: "summary" };
+  section: SummarySectionType;
 };
 
 export function SummarySection({ section }: SummarySectionProps) {

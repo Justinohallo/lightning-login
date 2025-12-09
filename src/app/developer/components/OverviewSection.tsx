@@ -1,7 +1,7 @@
-import { type DeveloperSection } from "@/lib/schemas/developerSchema";
+import { type OverviewSection as OverviewSectionType } from "@/lib/content-schemas/lightning-login-developer";
 
 type OverviewSectionProps = {
-  section: DeveloperSection & { kind: "overview" };
+  section: OverviewSectionType;
 };
 
 export function OverviewSection({ section }: OverviewSectionProps) {
