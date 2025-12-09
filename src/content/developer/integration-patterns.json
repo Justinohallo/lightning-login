@@ -3,60 +3,65 @@
     {
       "id": "nextjs-app-router",
       "name": "Next.js App Router Integration",
-      "useCase": "Most modern fullstack React applications.",
+      "useCase": "Ideal for modern React applications that want full control over auth primitives and session creation.",
       "steps": [
-        "Use a Route Handler for generating LNURL challenges",
-        "Store k1 and expire after 5 minutes",
-        "Build QR code on client using LNURL",
-        "Implement callback endpoint for signature verification",
-        "Create session cookie on success",
-        "Redirect back to the app"
+        "Use a Route Handler (`app/api/auth/lnurl/route.ts`) to generate `k1` and construct the LNURL.",
+        "Persist `k1` in a short-lived key-value store (KV, Redis, or in-memory).",
+        "Return encoded LNURL for QR display.",
+        "Implement a callback route (`app/api/auth/callback/route.ts`) that verifies signed responses.",
+        "On valid signature, create a session with a cookie or JWT.",
+        "Redirect user back to UI with authenticated state."
       ],
       "pros": [
-        "Most flexible option",
-        "Good separation between server and client",
-        "Compatible with RSC"
+        "Absolute control over the authentication lifecycle.",
+        "Fits perfectly with RSC and server actions.",
+        "Simple to reason about and maintain."
       ],
       "cons": [
-        "More boilerplate for session management",
-        "Edge runtime crypto libraries may not fully support LNURL"
+        "Custom session logic may be required.",
+        "Crypto libraries may need polyfills in edge runtimes."
       ]
     },
     {
       "id": "nextauth-provider",
-      "name": "NextAuth Provider",
-      "useCase": "Apps already using NextAuth for OAuth or credentials.",
+      "name": "NextAuth Custom Provider",
+      "useCase": "Best choice for apps already standardized on NextAuth and want to unify multiple login options.",
       "steps": [
-        "Create custom NextAuth provider",
-        "Provider triggers LNURL challenge endpoint",
-        "Callback verification maps pubkey → user",
-        "NextAuth persists session automatically"
+        "Create a custom LNURL-auth provider that initiates the challenge generation.",
+        "Override `authorize()` to handle callback verification.",
+        "Map pubkey → user record and return a full NextAuth user object.",
+        "Let NextAuth persist cookies and sessions via its built-in adapters."
       ],
       "pros": [
-        "Integrates cleanly with existing auth methods",
-        "Sessions and cookies handled automatically",
-        "Best DX for larger teams"
+        "Unified login UX.",
+        "Sessions, adapters, and JWT flows handled automatically.",
+        "Great for teams with existing OAuth infrastructure."
       ],
       "cons": [
-        "Requires deeper understanding of NextAuth providers",
-        "Harder to customize the login flow"
+        "Provider logic is more abstract and less explicit.",
+        "Requires deeper familiarity with NextAuth's internals."
       ]
     },
     {
-      "id": "express-api",
-      "name": "Express API Middleware",
-      "useCase": "Node backends without React.",
+      "id": "express-middleware",
+      "name": "Express / Node Middleware",
+      "useCase": "Great for backend services where frontend is decoupled or server-rendered.",
       "steps": [
-        "Create /auth/lnurl endpoint",
-        "Generate and store k1",
-        "Return encoded LNURL",
-        "Verify callback signature",
-        "Set session or JWT",
-        "Return auth status"
+        "Create `/auth/lnurl` endpoint for challenge generation.",
+        "Store `k1` in memory/Redis with expiry.",
+        "Serve QR code to client.",
+        "Callback endpoint verifies `{ key, sig, k1 }`.",
+        "Issue session token or JWT.",
+        "Return authenticated response."
       ],
-      "pros": ["Simple", "Fast", "Low overhead"],
-      "cons": ["No built-in session handling", "Manual validation required"]
+      "pros": [
+        "Minimal, explicit, easy to audit.",
+        "Good for microservices-based architectures."
+      ],
+      "cons": [
+        "No built-in session system.",
+        "Must choose and manage security primitives manually."
+      ]
     }
   ]
 }
-

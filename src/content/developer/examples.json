@@ -3,25 +3,24 @@
   "examples": [
     {
       "id": "simple-node",
-      "name": "Simple Node.js LNURL-auth Server",
-      "description": "A minimal example showing how to generate k1, encode LNURL, and verify signatures.",
+      "name": "Minimal Node LNURL-auth Server",
+      "description": "This example demonstrates the bare minimum logic required to generate a challenge, encode an LNURL, and verify the signed callback.",
       "difficulty": "beginner",
-      "code": "```js\nimport lnurl from 'lnurl';\nimport crypto from 'crypto';\nconst k1 = crypto.randomBytes(32).toString('hex');\n// encode & return LNURL to client\n```"
+      "code": "```js\nimport crypto from 'crypto';\nimport lnurl from 'lnurl';\n\nconst k1 = crypto.randomBytes(32).toString('hex');\nconst lnurlAuth = lnurl.encode({ tag: 'login', k1, callback: 'https://yourserver.com/api/callback' });\n\n// Wallet signs: sign(k1)\n// Callback receives { key, sig, k1 }\n// Server verifies with lnurl.verifySignature(key, sig, k1)\n```"
     },
     {
-      "id": "nextjs-route-handler",
+      "id": "nextjs-handler",
       "name": "Next.js Route Handler Implementation",
-      "description": "Uses App Router to generate LNURL and verify signatures via API Routes.",
+      "description": "A clean Route Handler example using App Router for challenge generation and verification.",
       "difficulty": "intermediate",
-      "code": "```ts\nexport async function GET(req: Request) {\n  const k1 = crypto.randomBytes(32).toString('hex');\n  return NextResponse.json({ lnurl, k1 });\n}\n```"
+      "code": "```ts\nexport async function GET() {\n  const k1 = randomBytes(32).toString('hex');\n  // persist k1 in storage\n  const lnurl = encodeLNURL(k1);\n  return NextResponse.json({ k1, lnurl });\n}\n```"
     },
     {
       "id": "nextauth-provider",
-      "name": "Custom NextAuth Provider",
-      "description": "Full LNURL-auth provider for NextAuth.",
+      "name": "NextAuth Custom Provider",
+      "description": "A full custom provider enabling LNURL-auth login inside NextAuth for seamless integration with other OAuth flows.",
       "difficulty": "advanced",
-      "code": "```ts\nconst LightningProvider = {\n  id: 'lightning',\n  type: 'oauth',\n  async profile(pubkey) {\n    return { id: pubkey };\n  }\n};\n```"
+      "code": "```ts\nconst LightningProvider = {\n  id: 'lightning',\n  type: 'oauth',\n  async authorize(credentials) {\n    const { key } = credentials;\n    return { id: key };\n  }\n};\n```"
     }
   ]
 }
-

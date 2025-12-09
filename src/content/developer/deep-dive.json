@@ -1,39 +1,41 @@
 {
   "protocolName": "LNURL-auth",
-  "overview": "LNURL-auth is a challenge–response authentication protocol built on wallet-derived public keys. The server issues a challenge (k1), the wallet signs it with a domain-specific private key, and the server verifies it.",
+  "overview": "LNURL-auth is a specialized application of LNURL that enables challenge–response authentication using deterministic per-domain keypairs. It combines the UX affordance of QR-based flows with the cryptographic robustness of Ed25519 or Secp256k1 signatures. The protocol is designed to be simple: no blockchain interaction, no Lightning payment channel required, no invoice settlement. Pure offline signing and verification.",
   "flowDiagramSteps": [
-    "1. User requests login",
-    "2. Server generates random 32-byte k1 challenge",
-    "3. Server encodes login request as LNURL",
-    "4. Wallet scans LNURL and derives a domain-specific keypair",
-    "5. Wallet signs k1 and sends (key, sig) to callback",
-    "6. Server verifies signature",
-    "7. Server creates session for that pubkey",
-    "8. User is logged in"
+    "1. Client requests a login session from the server.",
+    "2. Server generates a 32-byte random `k1` challenge and stores it temporarily.",
+    "3. Server encodes the auth request into an LNURL string (bech32).",
+    "4. Wallet scans LNURL and derives a per-domain deterministic private key.",
+    "5. Wallet signs the `k1` challenge with this derived private key.",
+    "6. Wallet sends `{ key: pubkey, sig: signature, k1: challenge }` to the callback URL.",
+    "7. Server verifies: `verifySig(pubkey, sig, k1)`.",
+    "8. If valid, server binds pubkey → user and creates a session."
   ],
   "cryptography": {
-    "keys": "Wallets derive a separate keypair for each domain using LNURL-auth key derivation functions.",
-    "signatures": "The signature is Ed25519 or Secp256k1 depending on the wallet's cryptographic backend.",
-    "challengeResponse": "The wallet must prove possession of the private key by signing a server-provided k1."
+    "keys": "LNURL-auth wallets derive per-domain keys using hierarchical deterministic logic. This prevents cross-site correlation while still allowing users to preserve access over time. Some wallets use BIP32-like derivation; others maintain an internal derivation scheme.",
+    "signatures": "Signatures are typically Secp256k1 ECDSA signatures, although some wallets may adopt Ed25519. The important detail: the signature covers only the `k1` challenge and not arbitrary messages, making verification straightforward.",
+    "challengeResponse": "The challenge (`k1`) is a random nonce. The wallet signs this nonce as proof of possession of the domain-derived private key. The signature is valid only for this login attempt — preventing replay attacks when implemented correctly."
   },
   "serverResponsibilities": [
-    "Generate secure random k1 values",
-    "Bind k1 to a short-lived record in storage or memory",
-    "Verify signatures using wallet-provided pubkey",
-    "Create user records mapped to pubkeys",
-    "Enforce expiration and replay-prevention of k1 challenges"
+    "Generate cryptographically secure 32-byte random values (`k1`).",
+    "Store `k1` temporarily (5-minute expiry recommended).",
+    "Associate `k1` with a pending login attempt or session fingerprint.",
+    "Verify signatures using the LNURL-auth crypto spec.",
+    "Create new user records when a previously unseen pubkey logs in.",
+    "Invalidate `k1` immediately after successful verification."
   ],
   "walletResponsibilities": [
-    "Derive per-domain keys",
-    "Prompt user for approval",
-    "Sign the challenge",
-    "Send callback to the server"
+    "Recognize the LNURL-auth request type and parse metadata.",
+    "Derive a domain-specific private key.",
+    "Prompt user to approve login.",
+    "Sign the `k1` challenge.",
+    "Send `{ key, sig, k1 }` to callback."
   ],
   "risks": [
-    "If k1 is not expired quickly, replay attacks are possible",
-    "If pubkey is reused outside LNURL-auth, linkability increases",
-    "Servers must validate signatures with reliable libraries",
-    "Session security still depends on your session framework"
+    "If `k1` values are not expired or invalidated, replay attacks become possible.",
+    "If the same pubkey is reused across non-LNURL-auth contexts, linkability increases.",
+    "Server operators must avoid storing or logging private data from wallets.",
+    "A compromised wallet compromises all derived identities.",
+    "Improper verification libraries can introduce signature validation bypasses."
   ]
 }
-

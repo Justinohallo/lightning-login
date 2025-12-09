@@ -1,43 +1,42 @@
 {
   "title": "Developer Guide: Lightning Login (LNURL-auth)",
-  "summary": "Lightning Login is a passwordless authentication protocol based on signed challenge–response using wallet-derived keys. This guide explains the protocol, implementation patterns, security considerations, and production best practices.",
+  "summary": "LNURL-auth is a deterministic, domain-isolated authentication protocol built on Bitcoin wallet key-pairs. Unlike OAuth, Passkeys, or email-based login solutions, Lightning Login introduces a cryptographically sovereign identity primitive with zero backend credential storage. This guide explains not only how to implement LNURL-auth, but why it matters for developers building modern, trust-minimized applications.",
   "sections": [
     {
       "id": "identity-problem",
-      "title": "The Identity Problem",
-      "description": "Traditional authentication methods centralize control and expose users to risk.",
+      "title": "The Internet Has an Identity Problem",
+      "description": "The internet's identity layer was never designed — it evolved through patches. Today, developers inherit a broken system full of friction, centralization, exploitable patterns, and brittle dependencies.",
       "items": [
-        "Passwords leak and get reused",
-        "Email-based accounts rely on corporate gatekeepers",
-        "OAuth identity flows leak metadata to identity providers",
-        "Users cannot rotate identities freely",
-        "Apps must store sensitive credentials"
+        "Passwords create credential databases that developers must guard forever, even though storing them is a liability.",
+        "Email-based accounts rely on corporate-controlled infrastructure — if a user loses access to their email, they lose access to your app.",
+        "OAuth (Google, Apple, Facebook) creates a surveillance identity layer where every login leaks metadata to a third party.",
+        "Identity Providers (IdPs) can unilaterally remove access to a user, and by extension, your service.",
+        "Developers must bolt together sessions, tokens, password resets, onboarding flows, and recovery systems — increasing attack surface."
       ]
     },
     {
       "id": "why-lnurl-auth",
-      "title": "Why LNURL-auth?",
-      "description": "LNURL-auth introduces a global, pseudonymous, user-controlled identity primitive.",
+      "title": "Why LNURL-auth Is Different",
+      "description": "LNURL-auth brings a minimal, open, cryptographically verifiable, user-controlled authentication primitive to the web. Users authenticate with a deterministic keypair tied to your domain — eliminating usernames, emails, passwords, and third-party providers.",
       "items": [
-        "Users authenticate using Bitcoin wallet keys",
-        "Keypairs are derived per-domain — no cross-site linkability",
-        "No emails, usernames, or personal data required",
-        "Servers never store secrets capable of authentication",
-        "The flow is simple: scan → sign → authenticate"
+        "Users authenticate using Bitcoin wallet keypairs — no personal data, no PII, and no email required.",
+        "Wallets derive a unique keypair per domain, eliminating cross-site correlation and improving privacy.",
+        "Servers don't store secrets capable of authenticating a user — they only store the user's pubkey.",
+        "The protocol is stateless, simple, and robust. The wallet signs a server-provided challenge, and the server verifies it.",
+        "LNURL-auth is transport-agnostic: scanners can be mobile wallets, browser extensions, desktop apps, or hardware devices."
       ]
     },
     {
       "id": "developer-outcomes",
-      "title": "What Developers Get",
-      "description": "LNURL-auth simplifies backend logic and improves security dramatically.",
+      "title": "For Developers",
+      "description": "LNURL-auth gives developers a dramatically simpler, safer, and more sovereign authentication pathway.",
       "items": [
-        "No credential storage",
-        "Simple signature verification logic",
-        "Easier multi-user onboarding",
-        "Higher privacy guarantees for users",
-        "Clean integration with modern app architectures"
+        "Eliminate credential storage — no password database, no complex resets, no breached-hash liability.",
+        "A single user identifier (pubkey) becomes all you need — easy to version, migrate, or index.",
+        "Your backend only needs to verify signatures — a simple, well-understood primitive with decades of battle testing.",
+        "Perfect fit for serverless and stateless architectures where storing credentials is undesirable.",
+        "Composable with existing session frameworks like NextAuth, Lucia, or custom JWT logic."
       ]
     }
   ]
 }
-
