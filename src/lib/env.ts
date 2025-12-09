@@ -5,7 +5,7 @@ const envSchema = z.object({
     .string()
     .url()
     .optional()
-    .default("https://lightning-login.com"),
+    .default("https://lightning-login.vercel.app"),
 });
 
 function getEnv() {
