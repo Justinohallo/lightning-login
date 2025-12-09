@@ -73,6 +73,7 @@ const DevComparisonSectionSchema = BaseDeveloperSectionSchema.extend({
 const StepByStepSectionSchema = BaseDeveloperSectionSchema.extend({
   kind: z.literal("step-by-step"),
   bulletPoints: z.array(z.string()).optional(),
+  codeExamples: z.array(DevCodeExampleSchema).optional(),
   takeaway: z.string().optional(),
 });
 

@@ -1,4 +1,5 @@
 import { type StepByStepSection as StepByStepSectionType } from "@/lib/content-schemas/lightning-login-developer";
+import { DevCodeBlock } from "./DevCodeBlock";
 
 type StepByStepSectionProps = {
   section: StepByStepSectionType;
@@ -16,6 +17,16 @@ export function StepByStepSection({ section }: StepByStepSectionProps) {
           <p key={index}>{paragraph}</p>
         ))}
       </div>
+      {section.codeExamples &&
+        section.codeExamples.map((example) => (
+          <DevCodeBlock
+            key={example.id}
+            title={example.title}
+            description={example.description}
+            language={example.language}
+            code={example.code}
+          />
+        ))}
       {section.bulletPoints && (
         <ol className="list-decimal pl-6 my-4 space-y-2">
           {section.bulletPoints.map((point, index) => (
