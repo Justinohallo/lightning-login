@@ -6,8 +6,8 @@ declare module "lnurl" {
     [key: string]: unknown;
   }
 
-  function encode(options: LNURLOptions): string;
-  function decode(lnurl: string): LNURLOptions;
+  function encode(url: string): string;
+  function decode(lnurl: string): string;
   function verifyAuthorizationSignature(
     pubkey: string,
     sig: string,
