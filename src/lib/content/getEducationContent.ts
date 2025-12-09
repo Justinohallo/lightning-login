@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { lightningLoginEducation } from "@/content/lightning-login.education";
+import lightningLoginEducation from "@/content/lightning-login.education.json";
 import { LightningLoginEducationSchema } from "@/lib/schemas/educationSchema";
 
 export const getEducationContent = cache(() => {

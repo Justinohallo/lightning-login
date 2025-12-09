@@ -1,7 +1,7 @@
 import { LightningLoginEducationSchema } from "@/lib/schemas/educationSchema";
 import { DeveloperContentSchema } from "@/lib/schemas/developerSchema";
-import { lightningLoginEducation } from "@/content/lightning-login.education";
-import { lightningLoginDeveloperContent } from "@/content/developer/lightning-login.developer";
+import lightningLoginEducation from "@/content/lightning-login.education.json";
+import lightningLoginDeveloperContent from "@/content/developer/lightning-login.developer.json";
 
 function formatZodError(error: unknown): string {
   if (error && typeof error === "object" && "issues" in error) {

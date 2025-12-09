@@ -2,7 +2,9 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { totalSlides } from "@/content/workshop";
+import workshopData from "@/content/workshop.json";
+
+const totalSlides = workshopData.slides.length;
 
 function WorkshopNavigationContent() {
   const router = useRouter();

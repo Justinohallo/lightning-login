@@ -6,7 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Slide from "./components/Slide";
 import WorkshopNavigation from "./components/WorkshopNavigation";
-import { slides } from "@/content/workshop";
+import workshopData from "@/content/workshop.json";
+import { type WorkshopSlide } from "@/lib/types/content";
+
+const slides = workshopData.slides as WorkshopSlide[];
 
 function WorkshopContent() {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { DeveloperContentSchema } from "@/lib/schemas/developerSchema";
-import { lightningLoginDeveloperContent } from "@/content/developer/lightning-login.developer";
+import lightningLoginDeveloperContent from "@/content/developer/lightning-login.developer.json";
 
 export const getDeveloperContent = cache(() => {
   try {

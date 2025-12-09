@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { type WorkshopSlide } from "@/content/workshop";
+import { type WorkshopSlide } from "@/lib/types/content";
 
 type SlideProps = {
   slide: WorkshopSlide;

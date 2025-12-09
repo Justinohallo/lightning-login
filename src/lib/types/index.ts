@@ -36,8 +36,8 @@ export type {
 } from "@/lib/content-schemas/lightning-login-developer";
 
 // Site types
-export type { Site } from "@/content/sites";
+export type { Site } from "@/lib/types/content";
 
 // Workshop types
-export type { WorkshopSlide } from "@/content/workshop";
+export type { WorkshopSlide } from "@/lib/types/content";
 

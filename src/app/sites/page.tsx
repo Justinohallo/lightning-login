@@ -1,5 +1,5 @@
 import { type Metadata } from "next";
-import { sites } from "@/content/sites";
+import sites from "@/content/sites.json";
 import { env } from "@/lib/env";
 
 export function generateMetadata(): Metadata {
