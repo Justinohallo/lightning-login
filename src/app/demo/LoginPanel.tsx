@@ -92,23 +92,45 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
   function startPolling(k1Value: string) {
     const interval = setInterval(async () => {
       try {
+        // Check both with k1 and without (to check session cookie)
         const res = await fetch(`/api/auth/status?k1=${k1Value}`);
         const data = await res.json();
         if (data.authenticated) {
           clearInterval(interval);
           setStep("authenticated");
+          console.log("[LoginPanel] Authentication detected via polling, reloading...");
           setTimeout(() => {
             window.location.reload();
-          }, 1000);
+          }, 500);
         }
       } catch (err) {
         console.error("Polling error:", err);
       }
     }, 2000);
 
+    // Also check session cookie periodically (in case k1 store doesn't work)
+    const sessionCheckInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/auth/status`);
+        const data = await res.json();
+        if (data.authenticated) {
+          clearInterval(interval);
+          clearInterval(sessionCheckInterval);
+          setStep("authenticated");
+          console.log("[LoginPanel] Session detected, reloading...");
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+      }
+    }, 2000);
+
     // Cleanup after 5 minutes
     setTimeout(() => {
       clearInterval(interval);
+      clearInterval(sessionCheckInterval);
       if (step === "waiting") {
         setError("Login timeout - please try again");
         setStep("idle");
