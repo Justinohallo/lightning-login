@@ -18,21 +18,34 @@ export function createPendingLogin(k1: string): void {
     pubkey: null,
     status: "pending",
   });
+  console.log(`[Store] Created pending login for k1: ${k1.substring(0, 8)}... (total pending: ${pendingLogins.size})`);
 }
 
 export function getPendingLogin(
   k1: string
 ): PendingLogin | undefined {
+  console.log(`[Store] Looking up k1: ${k1.substring(0, 8)}... (total pending: ${pendingLogins.size})`);
+  
+  // Log all current k1s for debugging
+  if (pendingLogins.size > 0) {
+    const currentK1s = Array.from(pendingLogins.keys()).map(k => k.substring(0, 8) + "...");
+    console.log(`[Store] Current pending k1s: ${currentK1s.join(", ")}`);
+  }
+  
   const login = pendingLogins.get(k1);
   if (!login) {
+    console.error(`[Store] k1 not found: ${k1.substring(0, 8)}...`);
     return undefined;
   }
 
   if (isExpired(login.created)) {
+    const age = Date.now() - login.created;
+    console.error(`[Store] k1 expired: ${k1.substring(0, 8)}... (age: ${Math.round(age / 1000)}s)`);
     login.status = "expired";
     return login;
   }
 
+  console.log(`[Store] Found valid pending login for k1: ${k1.substring(0, 8)}...`);
   return login;
 }
 

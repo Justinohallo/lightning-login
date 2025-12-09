@@ -46,12 +46,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     const pendingLogin = getPendingLogin(k1);
     if (!pendingLogin) {
       console.error(`[Callback] Invalid or expired k1: ${k1.substring(0, 8)}...`);
+      console.error(`[Callback] Full k1 received: ${k1}`);
+      console.error(`[Callback] This might indicate the k1 was never stored, or the store was cleared (common in serverless/multi-instance deployments)`);
       broadcastAuthError(k1, "Invalid or expired k1");
       return NextResponse.json(
         { 
           status: "ERROR", 
-          reason: "Invalid or expired k1",
-          k1: k1.substring(0, 8) + "..."
+          reason: "Invalid or expired k1. The challenge may have been generated on a different server instance.",
+          k1: k1.substring(0, 8) + "...",
+          hint: "In-memory storage doesn't persist across server instances. Consider using a shared store (Redis, database, etc.)"
         },
         { 
           status: 403,

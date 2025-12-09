@@ -20,7 +20,9 @@ export async function GET(): Promise<NextResponse> {
     createPendingLogin(k1);
 
     console.log(`[LNURL] Generated challenge k1: ${k1.substring(0, 8)}...`);
+    console.log(`[LNURL] Full k1: ${k1}`);
     console.log(`[LNURL] Callback URL: ${callbackUrl.toString()}`);
+    console.log(`[LNURL] Encoded LNURL: ${lnurl.substring(0, 50)}...`);
 
     return NextResponse.json({ k1, lnurl });
   } catch (error) {
