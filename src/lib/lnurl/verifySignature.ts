@@ -5,6 +5,7 @@ export function verifyAuthSignature(
   sig: string,
   k1: string
 ): boolean {
-  return lnurl.verifyAuthorizationSignature(pubkey, sig, k1);
+  // lnurl.verifyAuthorizationSignature expects: (sig, k1, key)
+  return lnurl.verifyAuthorizationSignature(sig, k1, pubkey);
 }
 

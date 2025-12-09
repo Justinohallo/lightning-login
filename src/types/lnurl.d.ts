@@ -9,9 +9,9 @@ declare module "lnurl" {
   function encode(url: string): string;
   function decode(lnurl: string): string;
   function verifyAuthorizationSignature(
-    pubkey: string,
     sig: string,
-    k1: string
+    k1: string,
+    key: string
   ): boolean;
 
   const lnurl: {
