@@ -1,4 +1,5 @@
 import { type Metadata } from "next";
+import Link from "next/link";
 import { CTAStrip } from "@/app/components/CTAStrip";
 import { ContentPageHeader } from "@/app/components/ContentPageHeader";
 import FaqSection from "./components/FaqSection";
@@ -37,6 +38,15 @@ export default function EducationPage() {
     <>
       <div className="max-w-3xl mx-auto px-6 py-12">
         <ContentPageHeader title={content.title} tagline={content.tagline} />
+
+        <div className="mt-8 mb-12 text-center">
+          <Link
+            href="/workshop?index=0"
+            className="inline-block mt-8 bg-yellow-300 hover:bg-yellow-400 px-6 py-3 rounded-lg text-black font-medium transition-colors"
+          >
+            Start Workshop
+          </Link>
+        </div>
 
         <div className="space-y-12">
           {content.sections.map((section) => (
