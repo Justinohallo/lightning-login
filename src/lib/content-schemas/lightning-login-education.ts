@@ -18,6 +18,17 @@ const ComparisonTableSchema = z.object({
   rows: z.array(z.array(z.string())),
 });
 
+export const FaqItemSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  answer: z.string(),
+});
+
+export const GlossaryItemSchema = z.object({
+  term: z.string(),
+  definition: z.string(),
+});
+
 export const SectionKindEnum = z.enum([
   "hero",
   "problem",
@@ -26,6 +37,8 @@ export const SectionKindEnum = z.enum([
   "technology",
   "comparison",
   "summary",
+  "faq",
+  "glossary",
 ]);
 
 export const EducationSectionSchema = z.object({
@@ -39,17 +52,8 @@ export const EducationSectionSchema = z.object({
   comparisonTable: ComparisonTableSchema.optional(),
   takeaway: z.string().optional(),
   callToAction: CallToActionSchema.optional(),
-});
-
-export const FaqItemSchema = z.object({
-  id: z.string(),
-  question: z.string(),
-  answer: z.string(),
-});
-
-export const GlossaryItemSchema = z.object({
-  term: z.string(),
-  definition: z.string(),
+  faqItems: z.array(FaqItemSchema).optional(),
+  glossaryItems: z.array(GlossaryItemSchema).optional(),
 });
 
 export const CtaStripSchema = z.object({
@@ -78,4 +82,6 @@ export type LightningLoginEducation = z.infer<
 >;
 
 export type EducationSection = z.infer<typeof EducationSectionSchema>;
+export type FaqItem = z.infer<typeof FaqItemSchema>;
+export type GlossaryItem = z.infer<typeof GlossaryItemSchema>;
 

@@ -6,5 +6,7 @@ export {
   AudienceEnum,
   type LightningLoginEducation,
   type EducationSection,
+  type FaqItem,
+  type GlossaryItem,
 } from "@/lib/content-schemas/lightning-login-education";
 

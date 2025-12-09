@@ -6,6 +6,8 @@ import { ConceptSection } from "./ConceptSection";
 import { TechnologySection } from "./TechnologySection";
 import { ComparisonSection } from "./ComparisonSection";
 import { SummarySection } from "./SummarySection";
+import FaqSection from "./FaqSection";
+import GlossarySection from "./GlossarySection";
 
 type SectionRendererProps = {
   section: EducationSection;
@@ -27,6 +29,10 @@ export function SectionRenderer({ section }: SectionRendererProps) {
       return <ComparisonSection section={section as EducationSection & { kind: "comparison" }} />;
     case "summary":
       return <SummarySection section={section as EducationSection & { kind: "summary" }} />;
+    case "faq":
+      return <FaqSection items={section.faqItems!} />;
+    case "glossary":
+      return <GlossarySection items={section.glossaryItems!} />;
     default:
       return null;
   }
