@@ -4,6 +4,7 @@
   "tagline": "How LNURL-auth works under the hood and how to build it yourself.",
   "navOrder": [
     "overview",
+    "vibe-coding",
     "architecture",
     "protocol-flow",
     "implementation-walkthrough",
@@ -25,6 +26,26 @@
         "Whether you're building a simple Node.js server or integrating with NextAuth.js, this guide will walk you through the process step by step.",
         "If you're new to Lightning Login concepts, start with the Education section to understand why it matters and how it compares to other authentication methods. Then return here for implementation details."
       ]
+    },
+    {
+      "id": "vibe-coding",
+      "slug": "vibe-coding",
+      "kind": "code-example",
+      "title": "Vibe Coding Prompt (Portable)",
+      "intro": "A copy/paste prompt you can use across Cursor, ChatGPT, Claude, Copilot Chat, and similar environments.",
+      "paragraphs": [
+        "Use this when you want an AI assistant to make changes in this repo without drifting, rewriting UI, or inventing APIs. It’s intentionally tool-agnostic: if your environment can edit files directly, it should; if not, it should output a patch.",
+        "Replace the placeholders in the Change request section. If you’re working in a repo-integrated environment, you can also mention relevant file paths (for example: src/app/api/auth/callback/route.ts) to anchor the work."
+      ],
+      "codeExamples": [
+        {
+          "id": "vibe-coding-prompt",
+          "title": "Portable vibe-coding prompt",
+          "language": "text",
+          "code": "You are an expert TypeScript/Next.js engineer working in an existing repo.\\n\\n## Objective\\nHelp me implement the change described below with minimal, correct edits.\\n\\n## Change request\\n<describe what you want to build/fix, including expected behavior and any acceptance criteria>\\n\\n## Repo context (important constraints)\\n- Framework: Next.js (App Router) + TypeScript.\\n- Prefer Server Components for data fetching where possible (minimize client-side fetching).\\n- Use functional React components and named exports.\\n- Do not modify styling, class names, or DOM structure unless the request is explicitly about UI.\\n- If accessing request-dependent data (cookies/headers), do it in the appropriate server context.\\n- If touching dynamic route params/headers/cookies APIs, follow Next.js guidance (await dynamic APIs before using their properties).\\n- Keep educational content accurate and consistent (LNURL-auth flow, k1 specs, signature verification, etc.).\\n\\n## Working agreement\\n- First, identify the exact files to change (and why).\\n- Then, make the smallest set of edits to satisfy the request.\\n- After changes, run: npm run lint && npm run build (and npm run validate if content files changed).\\n- If something is ambiguous, pick the safest assumption and document it briefly.\\n\\n## Output format\\n- If you can edit files directly in this environment: make the changes and summarize them.\\n- If you cannot edit files: output a patch/diff and a short verification checklist."
+        }
+      ],
+      "takeaway": "If the prompt doesn’t mention constraints, the assistant will improvise. If you state them plainly, it behaves like a disciplined engineer."
     },
     {
       "id": "architecture",
