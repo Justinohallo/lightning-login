@@ -189,7 +189,7 @@ When updating content, verify:
 
 ### Implementation Patterns
 - **Session Cookies**: httpOnly, secure, sameSite for security
-- **WebSocket + Polling**: Dual mechanism for real-time updates
+- **Polling**: Use /api/auth/status for auth detection
 - **Multi-Instance Support**: Session cookies work across server instances
 - **Error Handling**: Comprehensive logging for production debugging
 - **CORS Headers**: Required for wallet callbacks
@@ -206,7 +206,6 @@ When updating content, verify:
 - `src/app/api/auth/lnurl/route.ts` - LNURL endpoint
 - `src/app/api/auth/callback/route.ts` - Callback handler
 - `src/app/api/auth/status/route.ts` - Status checking
-- `src/lib/websocket/authStatusServer.ts` - WebSocket management
 
 ### Content Files
 - `src/content/lightning-login.education.json` - Education content

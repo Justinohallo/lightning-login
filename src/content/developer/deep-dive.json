@@ -11,7 +11,7 @@
     "7. Wallet sends GET request to callback URL with query parameters: `key` (public key), `sig` (signature), and `k1` (challenge).",
     "8. Server verifies the k1 exists, hasn't expired, and hasn't been used. Then verifies the signature: `verifyAuthorizationSignature(sig, k1, pubkey)`.",
     "9. If signature is valid, server creates a session cookie (httpOnly, containing the pubkey) and returns {status: 'OK'}.",
-    "10. Frontend detects authentication (via WebSocket or polling) and reloads to show logged-in state."
+    "10. Frontend detects authentication (via polling) and reloads to show logged-in state."
   ],
   "cryptography": {
     "keys": "LNURL-auth wallets derive per-domain keys using hierarchical deterministic logic (typically BIP32-like derivation). This prevents cross-site correlation while still allowing users to preserve access over time. Each domain gets its own linking key (public key) derived from the user's wallet seed. Some wallets use BIP32 derivation paths; others maintain an internal derivation scheme, but the principle is the same: deterministic, domain-specific key derivation.",

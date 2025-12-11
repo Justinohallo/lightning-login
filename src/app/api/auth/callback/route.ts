@@ -1,4 +1,3 @@
-import { broadcastAuthError, broadcastAuthSuccess } from "@/lib/websocket/authStatusServer";
 import {
   completeLogin,
   getPendingLogin,
@@ -49,7 +48,6 @@ export async function GET(request: Request): Promise<NextResponse> {
       console.error(`[Callback] Invalid or expired k1: ${k1.substring(0, 8)}...`);
       console.error(`[Callback] Full k1 received: ${k1}`);
       console.error(`[Callback] This might indicate the k1 was never stored, or the store was cleared (common in serverless/multi-instance deployments)`);
-      broadcastAuthError(k1, "Invalid or expired k1");
       return NextResponse.json(
         {
           status: "ERROR",
@@ -70,7 +68,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     if (pendingLogin.status === "expired") {
       console.error(`[Callback] Challenge expired for k1: ${k1.substring(0, 8)}...`);
-      broadcastAuthError(k1, "Challenge expired");
       return NextResponse.json(
         {
           status: "ERROR",
@@ -93,7 +90,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     if (!isValid) {
       console.error(`[Callback] Invalid signature for k1: ${k1.substring(0, 8)}..., key: ${key.substring(0, 16)}...`);
-      broadcastAuthError(k1, "Invalid signature");
       return NextResponse.json(
         {
           status: "ERROR",
@@ -115,7 +111,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     console.log(`[Callback] Authentication successful for k1: ${k1.substring(0, 8)}..., key: ${key.substring(0, 16)}...`);
     completeLogin(k1, key);
     await createSession(key);
-    broadcastAuthSuccess(k1, key);
     removePendingLogin(k1);
 
     // LNURL-auth spec requires JSON response with status: "OK"

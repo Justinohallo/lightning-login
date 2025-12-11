@@ -234,11 +234,11 @@
         },
         {
           "type": "text",
-          "value": "Simultaneously connects WebSocket for real-time updates"
+          "value": "Starts polling /api/auth/status every 2 seconds"
         },
         {
           "type": "text",
-          "value": "Falls back to polling if WebSocket fails"
+          "value": "Session cookie is checked first for serverless reliability"
         }
       ]
     },
@@ -419,24 +419,24 @@
     },
     {
       "id": "step11-broadcast",
-      "title": "Step 11: Broadcast Success",
+      "title": "Step 11: Finalize Login",
       "content": [
         {
           "type": "text",
-          "value": "Send WebSocket message to connected clients"
+          "value": "No server push required"
         },
         {
           "type": "text",
-          "value": "Message: {type: 'authenticated', k1, pubkey}"
+          "value": "Client will detect authentication via polling"
         },
         {
           "type": "text",
-          "value": "Frontend receives message immediately"
+          "value": "Session cookie is the source of truth"
         },
         {
           "type": "code",
           "language": "typescript",
-          "value": "// src/lib/websocket/authStatusServer.ts\nbroadcastAuthSuccess(k1, key);\n\n// Frontend receives:\nws.onmessage = (event) => {\n  const msg = JSON.parse(event.data);\n  if (msg.type === 'authenticated') {\n    window.location.reload();\n  }\n};"
+          "value": "// src/app/api/auth/callback/route.ts\ncompleteLogin(k1, key);\nawait createSession(key);\nremovePendingLogin(k1);"
         },
         {
           "type": "text",
@@ -450,15 +450,15 @@
       "content": [
         {
           "type": "text",
-          "value": "Two mechanisms:"
+          "value": "Polling mechanism:"
         },
         {
           "type": "text",
-          "value": "1. WebSocket: Instant notification"
+          "value": "Checks /api/auth/status every 2s"
         },
         {
           "type": "text",
-          "value": "2. Polling fallback: Checks /api/auth/status every 2s"
+          "value": "Status endpoint checks session cookie first"
         },
         {
           "type": "code",
