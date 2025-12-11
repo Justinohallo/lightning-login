@@ -35,10 +35,40 @@
       "intro": "This site is a learning resource and a reference implementation. Use the prompt below to “vibe code” Lightning Login into a new or existing project by mirroring the exact flow used in this demo.",
       "paragraphs": [
         "We call the integration shape “LNURL-with”: LNURL-auth (challenge + signature verification) with the practical glue real apps need — short-lived k1 storage, a secure httpOnly session cookie, and a real-time “did the user authenticate yet?” signal (WebSocket with polling fallback).",
+        "If you’re building this in a Next.js App Router app, implement it as Route Handlers under app/api. The server generates the k1 challenge, encodes a callback URL into a bech32 LNURL string, and returns { k1, lnurl } as JSON. The wallet then calls your callback route with k1, key, and sig; the server verifies the signature and sets an httpOnly cookie session.",
+        "The reason we add “with” glue: LNURL-auth alone proves key ownership, but it doesn’t solve app ergonomics. You still need k1 lifecycle (expiry + single-use), an authenticated session boundary (cookie), and a reliable way for the UI to learn “the wallet just finished” (WebSocket + polling fallback).",
         "The prompt is intentionally portable across environments (Cursor, ChatGPT, Claude, Copilot Chat). If your environment can read files and apply patches, point it at this repo and tell it to mirror the endpoint behavior here. If it cannot, have it output a patch/diff.",
         "Your end result should look like this demo: an endpoint that returns { k1, lnurl }, a callback that verifies (sig, k1, pubkey) and creates a session, and a UI that shows a QR code then flips to logged-in automatically."
       ],
       "codeExamples": [
+        {
+          "id": "nextjs-lnurl-with-file-map",
+          "title": "Next.js App Router file map (LNURL-with)",
+          "description": "A minimal file layout for LNURL-with in a Next.js app (mirrors this demo).",
+          "language": "text",
+          "code": "app/\n  api/\n    auth/\n      lnurl/route.ts      # GET: generate k1 + return {k1, lnurl}\n      callback/route.ts   # GET: verify signature, set session cookie\n      status/route.ts     # GET: return {authenticated} for a given k1 (polling fallback)\n    ws/\n      auth/route.ts       # WebSocket: push auth success for a given k1\n\nlib/\n  lnurl/\n    generateK1.ts         # crypto.randomBytes(32)->hex\n    encodeLNURL.ts        # lnurl.encode(urlString)\n    verifySignature.ts    # lnurl.verifyAuthorizationSignature(sig,k1,pubkey)\n  store/\n    pendingLogins.ts      # pending k1 store + 5 minute expiry + single-use\n  session/\n    createSession.ts      # sets httpOnly cookie\n    getSession.ts         # reads httpOnly cookie\n\napp/demo/\n  LoginPanel.tsx          # UI: fetch lnurl, render QR, subscribe WS + polling\n"
+        },
+        {
+          "id": "nextjs-lnurl-endpoint-shape",
+          "title": "Route Handler: LNURL endpoint (shape)",
+          "description": "The LNURL endpoint returns the challenge (k1) and the bech32 LNURL string for QR encoding. Compare to: src/app/api/auth/lnurl/route.ts",
+          "language": "typescript",
+          "code": "export async function GET() {\n  // 1) Generate cryptographically secure k1 (32 bytes -> 64 hex chars)\n  // 2) Store k1 as pending (expires in 5 minutes)\n  // 3) Build callback URL: /api/auth/callback?tag=login&k1=...\n  // 4) Encode callback URL to bech32 LNURL string\n  // 5) Return { k1, lnurl }\n}\n"
+        },
+        {
+          "id": "nextjs-callback-endpoint-shape",
+          "title": "Route Handler: callback (shape)",
+          "description": "The callback verifies k1 + signature, then creates a session cookie. Compare to: src/app/api/auth/callback/route.ts",
+          "language": "typescript",
+          "code": "export async function GET(request: Request) {\n  const { searchParams } = new URL(request.url);\n  const k1 = searchParams.get(\"k1\");\n  const pubkey = searchParams.get(\"key\");\n  const sig = searchParams.get(\"sig\");\n\n  // Validate inputs\n  // Verify k1 exists + is not expired + is pending (single-use)\n  // Verify signature using lnurl.verifyAuthorizationSignature(sig, k1, pubkey)\n  // Create httpOnly session cookie (secure in production, sameSite: 'lax')\n  // Mark k1 complete and invalidate it to prevent replay\n  // Return { status: \"OK\" } (or {status:\"ERROR\", reason:\"...\"})\n}\n"
+        },
+        {
+          "id": "nextjs-status-and-ws-notes",
+          "title": "Status + WebSocket: why you need both",
+          "description": "WebSockets make the UI feel instant; polling makes it dependable when WS fails.",
+          "language": "text",
+          "code": "WebSocket (preferred):\n- Client connects with k1 (e.g. /api/ws/auth?k1=...)\n- Server broadcasts \"authenticated\" when callback succeeds\n\nPolling fallback:\n- Client polls /api/auth/status?k1=... every 1–2 seconds\n- Status route should check the session cookie first (works across instances)\n- Then fall back to the pending k1 store if needed\n\nThis dual approach is the “LNURL-with” UX glue: instant when possible, reliable always.\n"
+        },
         {
           "id": "vibe-coding-prompt",
           "title": "Portable vibe-coding prompt (LNURL-with)",
@@ -47,11 +77,11 @@
         }
       ],
       "bulletPoints": [
-        "Step 1 — Pick your deployment shape: single-instance (in-memory k1 store is fine) vs multi-instance/serverless (use Redis/Upstash or rely on cookie-first status checks).",
-        "Step 2 — Implement the LNURL endpoint: generate k1, build callback URL with tag=login&k1=..., and bech32-encode it to an lnurl1... string.",
-        "Step 3 — Implement the callback endpoint: validate inputs, confirm k1 is pending & unexpired, verify signature (sig, k1, pubkey), then create an httpOnly session cookie and invalidate k1.",
-        "Step 4 — Implement the status signal: WebSocket for instant UI updates with a polling fallback for reliability.",
-        "Step 5 — Build the minimal UI: generate QR from lnurl, subscribe to status, and switch to logged-in state when authenticated."
+        "Step 1 — Add the primitives: generate k1 (crypto.randomBytes(32)->hex), encode LNURL (lnurl.encode(urlString)), verify signature (lnurl.verifyAuthorizationSignature(sig, k1, pubkey)).",
+        "Step 2 — Add a pending k1 store with expiry + single-use semantics (5 minutes; delete after success).",
+        "Step 3 — Implement the LNURL route handler (GET): create k1, store it, construct callback URL with tag=login&k1=..., encode to lnurl1..., return { k1, lnurl }.",
+        "Step 4 — Implement the callback route handler (GET): validate params, verify k1, verify signature (sig, k1, pubkey), set an httpOnly session cookie, invalidate k1, return {status:\"OK\"}.",
+        "Step 5 — Implement the UI + status signal: show QR for lnurl, subscribe to WebSocket for instant success, poll /api/auth/status as fallback, reload/transition to logged-in state."
       ],
       "takeaway": "Treat k1 as cryptographic, short-lived, and single-use — and verify signatures in the correct order (sig, k1, pubkey). The rest is “LNURL-with” glue to make the login feel instant and dependable."
     },
