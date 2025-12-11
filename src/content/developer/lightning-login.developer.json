@@ -30,22 +30,30 @@
     {
       "id": "vibe-coding",
       "slug": "vibe-coding",
-      "kind": "code-example",
-      "title": "Vibe Coding Prompt (Portable)",
-      "intro": "A copy/paste prompt you can use across Cursor, ChatGPT, Claude, Copilot Chat, and similar environments.",
+      "kind": "step-by-step",
+      "title": "Vibe coding: add Lightning Login (LNURL-auth) to your project",
+      "intro": "This site is a learning resource and a reference implementation. Use the prompt below to “vibe code” Lightning Login into a new or existing project by mirroring the exact flow used in this demo.",
       "paragraphs": [
-        "Use this when you want an AI assistant to make changes in this repo without drifting, rewriting UI, or inventing APIs. It’s intentionally tool-agnostic: if your environment can edit files directly, it should; if not, it should output a patch.",
-        "Replace the placeholders in the Change request section. If you’re working in a repo-integrated environment, you can also mention relevant file paths (for example: src/app/api/auth/callback/route.ts) to anchor the work."
+        "We call the integration shape “LNURL-with”: LNURL-auth (challenge + signature verification) with the practical glue real apps need — short-lived k1 storage, a secure httpOnly session cookie, and a real-time “did the user authenticate yet?” signal (WebSocket with polling fallback).",
+        "The prompt is intentionally portable across environments (Cursor, ChatGPT, Claude, Copilot Chat). If your environment can read files and apply patches, point it at this repo and tell it to mirror the endpoint behavior here. If it cannot, have it output a patch/diff.",
+        "Your end result should look like this demo: an endpoint that returns { k1, lnurl }, a callback that verifies (sig, k1, pubkey) and creates a session, and a UI that shows a QR code then flips to logged-in automatically."
       ],
       "codeExamples": [
         {
           "id": "vibe-coding-prompt",
-          "title": "Portable vibe-coding prompt",
+          "title": "Portable vibe-coding prompt (LNURL-with)",
           "language": "text",
-          "code": "You are an expert TypeScript/Next.js engineer working in an existing repo.\\n\\n## Objective\\nHelp me implement the change described below with minimal, correct edits.\\n\\n## Change request\\n<describe what you want to build/fix, including expected behavior and any acceptance criteria>\\n\\n## Repo context (important constraints)\\n- Framework: Next.js (App Router) + TypeScript.\\n- Prefer Server Components for data fetching where possible (minimize client-side fetching).\\n- Use functional React components and named exports.\\n- Do not modify styling, class names, or DOM structure unless the request is explicitly about UI.\\n- If accessing request-dependent data (cookies/headers), do it in the appropriate server context.\\n- If touching dynamic route params/headers/cookies APIs, follow Next.js guidance (await dynamic APIs before using their properties).\\n- Keep educational content accurate and consistent (LNURL-auth flow, k1 specs, signature verification, etc.).\\n\\n## Working agreement\\n- First, identify the exact files to change (and why).\\n- Then, make the smallest set of edits to satisfy the request.\\n- After changes, run: npm run lint && npm run build (and npm run validate if content files changed).\\n- If something is ambiguous, pick the safest assumption and document it briefly.\\n\\n## Output format\\n- If you can edit files directly in this environment: make the changes and summarize them.\\n- If you cannot edit files: output a patch/diff and a short verification checklist."
+          "code": "You are an expert TypeScript/Next.js engineer. Help me add Lightning Login (LNURL-auth) to a new or existing project using the “LNURL-with” integration shape: LNURL-auth + short-lived k1 storage + secure session cookie + real-time auth status (WebSocket with polling fallback).\\n\\n## Goal\\nImplement Lightning Login so a user can scan a QR code with a Lightning wallet and authenticate without passwords.\\n\\n## Target app\\n- Framework/runtime: <e.g. Next.js App Router, Express, Cloudflare Workers>\\n- Existing auth/session approach (if any): <cookies, next-auth, jwt, etc>\\n- Hosting constraints: <serverless? multi-instance? websockets allowed?>\\n\\n## Acceptance criteria\\n- LNURL endpoint:\\n  - Generates a cryptographically secure k1 challenge: 32 random bytes encoded as 64 hex characters.\\n  - Stores k1 as pending (single-use, expires after 5 minutes).\\n  - Returns JSON: { k1, lnurl } where lnurl is bech32 encoding of the callback URL.\\n- Callback endpoint:\\n  - Receives query params: tag=login, k1, key (pubkey), sig (signature).\\n  - Rejects missing params, unknown k1, expired k1, or invalid signature.\\n  - Verifies using ECDSA secp256k1 via lnurl.verifyAuthorizationSignature(sig, k1, pubkey) (note the parameter order).\\n  - On success: marks k1 authenticated, creates a secure httpOnly session cookie, invalidates k1 (single-use), and returns { status: \\\"OK\\\" }.\\n- Status signal:\\n  - Frontend can detect auth success quickly.\\n  - Prefer WebSocket; include polling fallback if WS isn’t available.\\n- UI:\\n  - A page/panel with a “Generate login QR” action.\\n  - Shows QR that encodes the LNURL.\\n  - Automatically transitions to logged-in state after auth.\\n\\n## Canonical reference (this demo repo)\\nMirror behavior and security properties from these files (treat them as source-of-truth):\\n- src/app/api/auth/lnurl/route.ts\\n- src/app/api/auth/callback/route.ts\\n- src/app/api/auth/status/route.ts\\n- src/app/api/ws/auth/route.ts\\n- src/lib/lnurl/generateK1.ts\\n- src/lib/lnurl/encodeLNURL.ts\\n- src/lib/lnurl/verifySignature.ts\\n- src/lib/store/pendingLogins.ts\\n- src/lib/session/createSession.ts\\n- src/lib/session/getSession.ts\\n- src/app/demo/LoginPanel.tsx\\n\\n## Working rules\\n- Make the smallest correct change set.\\n- Do not change styling/DOM unless the request is explicitly UI.\\n- Prefer server-side data access where possible.\\n- If the environment can’t edit files, output a patch/diff plus a verification checklist.\\n\\n## Deliverables\\n1) A short implementation plan mapped to files.\\n2) The actual code changes (or a patch).\\n3) A test/verification plan (include at least: signature verification order, k1 expiry, single-use, cookie settings)."
         }
       ],
-      "takeaway": "If the prompt doesn’t mention constraints, the assistant will improvise. If you state them plainly, it behaves like a disciplined engineer."
+      "bulletPoints": [
+        "Step 1 — Pick your deployment shape: single-instance (in-memory k1 store is fine) vs multi-instance/serverless (use Redis/Upstash or rely on cookie-first status checks).",
+        "Step 2 — Implement the LNURL endpoint: generate k1, build callback URL with tag=login&k1=..., and bech32-encode it to an lnurl1... string.",
+        "Step 3 — Implement the callback endpoint: validate inputs, confirm k1 is pending & unexpired, verify signature (sig, k1, pubkey), then create an httpOnly session cookie and invalidate k1.",
+        "Step 4 — Implement the status signal: WebSocket for instant UI updates with a polling fallback for reliability.",
+        "Step 5 — Build the minimal UI: generate QR from lnurl, subscribe to status, and switch to logged-in state when authenticated."
+      ],
+      "takeaway": "Treat k1 as cryptographic, short-lived, and single-use — and verify signatures in the correct order (sig, k1, pubkey). The rest is “LNURL-with” glue to make the login feel instant and dependable."
     },
     {
       "id": "architecture",
