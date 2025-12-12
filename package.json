@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production tsx server.ts",
+    "start": "next start",
     "lint": "eslint",
+    "tsc": "tsc --noEmit",
     "validate": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
@@ -18,7 +19,6 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-syntax-highlighter": "^16.1.0",
-    "ws": "^8.18.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {
@@ -26,7 +26,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",

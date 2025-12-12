@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import LoginPanel from "./LoginPanel";
+import { LoginPanel } from "./LoginPanel";
 import DeveloperTools from "./DeveloperTools";
 import LNURLPlayground from "./LNURLPlayground";
 

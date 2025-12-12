@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 
 type AuthStep = "idle" | "generating" | "waiting" | "authenticating" | "authenticated";
@@ -9,13 +9,24 @@ type LoginPanelProps = {
   onDataChange?: (data: { k1: string | null; lnurl: string | null; step: AuthStep }) => void;
 };
 
-export default function LoginPanel({ onDataChange }: LoginPanelProps) {
+export function LoginPanel({ onDataChange }: LoginPanelProps) {
   const [qr, setQr] = useState<string>("");
   const [k1, setK1] = useState<string | null>(null);
   const [lnurl, setLnurl] = useState<string | null>(null);
   const [step, setStep] = useState<AuthStep>("idle");
   const [error, setError] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const pollerRef = useRef<{
+    statusInterval: ReturnType<typeof setInterval> | null;
+    sessionInterval: ReturnType<typeof setInterval> | null;
+    timeout: ReturnType<typeof setTimeout> | null;
+    stopped: boolean;
+  }>({
+    statusInterval: null,
+    sessionInterval: null,
+    timeout: null,
+    stopped: false,
+  });
 
   useEffect(() => {
     if (onDataChange) {
@@ -25,17 +36,41 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
 
   useEffect(() => {
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      stopPolling();
     };
   }, []);
 
+  async function copyToClipboard(text: string) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const el = document.createElement("textarea");
+        el.value = text;
+        el.setAttribute("readonly", "true");
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      }
+
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 1500);
+    } catch {
+      setCopyStatus("failed");
+      setTimeout(() => setCopyStatus("idle"), 1500);
+    }
+  }
+
   async function start() {
     try {
+      stopPolling();
       setStep("generating");
       setError(null);
       setQr("");
+      setCopyStatus("idle");
 
       const res = await fetch("/api/auth/lnurl");
       if (!res.ok) {
@@ -49,54 +84,36 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
       setQr(qrData);
       setStep("waiting");
 
-      // Connect WebSocket for real-time updates
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/api/ws/auth?k1=${data.k1}`;
-      const ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        console.log("WebSocket connected");
-      };
-
-      ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === "authenticated") {
-          setStep("authenticated");
-          // Reload page to show logged in state
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else if (message.type === "error") {
-          setError(message.error);
-          setStep("idle");
-        }
-      };
-
-      ws.onerror = (err) => {
-        console.error("WebSocket error:", err);
-        // Fallback to polling
-        startPolling(data.k1);
-      };
-
-      ws.onclose = () => {
-        console.log("WebSocket closed");
-      };
-
-      wsRef.current = ws;
+      // WebSockets aren't supported on Vercel for this app; use polling.
+      startPolling(data.k1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start login");
       setStep("idle");
     }
   }
 
+  function stopPolling() {
+    const poller = pollerRef.current;
+    poller.stopped = true;
+    if (poller.statusInterval) clearInterval(poller.statusInterval);
+    if (poller.sessionInterval) clearInterval(poller.sessionInterval);
+    if (poller.timeout) clearTimeout(poller.timeout);
+    poller.statusInterval = null;
+    poller.sessionInterval = null;
+    poller.timeout = null;
+  }
+
   function startPolling(k1Value: string) {
-    const interval = setInterval(async () => {
+    const poller = pollerRef.current;
+    poller.stopped = false;
+
+    poller.statusInterval = setInterval(async () => {
       try {
         // Check both with k1 and without (to check session cookie)
         const res = await fetch(`/api/auth/status?k1=${k1Value}`);
         const data = await res.json();
         if (data.authenticated) {
-          clearInterval(interval);
+          stopPolling();
           setStep("authenticated");
           console.log("[LoginPanel] Authentication detected via polling, reloading...");
           setTimeout(() => {
@@ -109,13 +126,12 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
     }, 2000);
 
     // Also check session cookie periodically (in case k1 store doesn't work)
-    const sessionCheckInterval = setInterval(async () => {
+    poller.sessionInterval = setInterval(async () => {
       try {
         const res = await fetch(`/api/auth/status`);
         const data = await res.json();
         if (data.authenticated) {
-          clearInterval(interval);
-          clearInterval(sessionCheckInterval);
+          stopPolling();
           setStep("authenticated");
           console.log("[LoginPanel] Session detected, reloading...");
           setTimeout(() => {
@@ -128,10 +144,9 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
     }, 2000);
 
     // Cleanup after 5 minutes
-    setTimeout(() => {
-      clearInterval(interval);
-      clearInterval(sessionCheckInterval);
-      if (step === "waiting") {
+    poller.timeout = setTimeout(() => {
+      if (!poller.stopped) {
+        stopPolling();
         setError("Login timeout - please try again");
         setStep("idle");
       }
@@ -166,6 +181,26 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
           <p className="mt-4 text-neutral-600">
             Scan with Breez, Alby, or any LNURL-auth compatible wallet.
           </p>
+          {lnurl && (
+            <div className="mt-4 p-4 bg-neutral-50 rounded-lg">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-mono text-neutral-700 break-all">
+                  lnurl: {lnurl}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(lnurl)}
+                  className="shrink-0 px-3 py-2 bg-neutral-200 text-neutral-900 rounded hover:bg-neutral-300"
+                >
+                  {copyStatus === "copied"
+                    ? "Copied"
+                    : copyStatus === "failed"
+                      ? "Copy failed"
+                      : "Copy LNURL"}
+                </button>
+              </div>
+            </div>
+          )}
           <div className="mt-4 p-4 bg-neutral-50 rounded-lg">
             <p className="text-sm font-mono text-neutral-700 break-all">
               k1: {k1}
@@ -187,6 +222,7 @@ export default function LoginPanel({ onDataChange }: LoginPanelProps) {
           <p className="text-red-800">{error}</p>
           <button
             onClick={() => {
+              stopPolling();
               setError(null);
               setStep("idle");
               setK1(null);
