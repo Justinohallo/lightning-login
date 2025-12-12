@@ -15,6 +15,7 @@ export function LoginPanel({ onDataChange }: LoginPanelProps) {
   const [lnurl, setLnurl] = useState<string | null>(null);
   const [step, setStep] = useState<AuthStep>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const pollerRef = useRef<{
     statusInterval: ReturnType<typeof setInterval> | null;
     sessionInterval: ReturnType<typeof setInterval> | null;
@@ -39,12 +40,37 @@ export function LoginPanel({ onDataChange }: LoginPanelProps) {
     };
   }, []);
 
+  async function copyToClipboard(text: string) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const el = document.createElement("textarea");
+        el.value = text;
+        el.setAttribute("readonly", "true");
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      }
+
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 1500);
+    } catch {
+      setCopyStatus("failed");
+      setTimeout(() => setCopyStatus("idle"), 1500);
+    }
+  }
+
   async function start() {
     try {
       stopPolling();
       setStep("generating");
       setError(null);
       setQr("");
+      setCopyStatus("idle");
 
       const res = await fetch("/api/auth/lnurl");
       if (!res.ok) {
@@ -155,6 +181,26 @@ export function LoginPanel({ onDataChange }: LoginPanelProps) {
           <p className="mt-4 text-neutral-600">
             Scan with Breez, Alby, or any LNURL-auth compatible wallet.
           </p>
+          {lnurl && (
+            <div className="mt-4 p-4 bg-neutral-50 rounded-lg">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-mono text-neutral-700 break-all">
+                  lnurl: {lnurl}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(lnurl)}
+                  className="shrink-0 px-3 py-2 bg-neutral-200 text-neutral-900 rounded hover:bg-neutral-300"
+                >
+                  {copyStatus === "copied"
+                    ? "Copied"
+                    : copyStatus === "failed"
+                      ? "Copy failed"
+                      : "Copy LNURL"}
+                </button>
+              </div>
+            </div>
+          )}
           <div className="mt-4 p-4 bg-neutral-50 rounded-lg">
             <p className="text-sm font-mono text-neutral-700 break-all">
               k1: {k1}
