@@ -1,0 +1,207 @@
+{
+  "title": "Vibe Coding Platform Compatibility",
+  "subtitle": "Not all AI-powered development platforms can build Lightning Login applications",
+  "overview": "Lightning Login requires stateful backend infrastructure with session management and temporary storage for k1 challenges. This architectural requirement makes it incompatible with frontend-only 'vibe coding' platforms that only support edge functions or static site generation.",
+  "whatIsVibeCoding": {
+    "title": "What is 'Vibe Coding'?",
+    "description": "Vibe coding refers to AI-powered development platforms that allow developers to build applications through conversational interfaces, prompts, and rapid iteration—emphasizing speed and developer experience over traditional coding workflows. These platforms range from frontend-only generators to full-stack development environments.",
+    "examples": [
+      "Conversational interfaces that generate complete applications from descriptions",
+      "AI-powered platforms that handle infrastructure setup automatically",
+      "Rapid prototyping tools that go from idea to deployed app in minutes",
+      "No-code/low-code platforms enhanced with AI capabilities"
+    ]
+  },
+  "technicalRequirements": {
+    "title": "Why Lightning Login Needs a Real Server",
+    "description": "The LNURL-auth protocol's security model is incompatible with edge-only architectures. Here's why:",
+    "requirements": [
+      {
+        "requirement": "Stateful k1 Challenge Storage",
+        "reason": "The server must generate and temporarily store k1 challenges (32-byte random hex strings) with 5-minute expiration. These challenges must be retrievable when the wallet makes the callback. Edge functions are stateless and reset between invocations—they cannot persist data across requests without external storage.",
+        "technical": "k1 challenges need in-memory storage (Map/Set) or a persistent KV store (Redis, Upstash). Edge functions lack both unless explicitly configured with external services."
+      },
+      {
+        "requirement": "Session Cookie Management",
+        "reason": "After signature verification, the server creates an httpOnly session cookie containing the user's public key. This session must persist across page reloads and multiple requests. Edge functions can set cookies, but session persistence typically requires a database or KV store to track active sessions.",
+        "technical": "While edge functions can set cookies, validating sessions across requests requires either a database lookup or a stateful backend that can maintain session state."
+      },
+      {
+        "requirement": "Cryptographic Operations",
+        "reason": "Signature verification uses Node.js crypto primitives (ECDSA with secp256k1). While some edge runtimes support crypto APIs, many have limited support for the specific elliptic curve operations required by LNURL-auth.",
+        "technical": "The lnurl npm package relies on Node.js crypto APIs. Edge runtimes (Cloudflare Workers, Vercel Edge Functions) have limited crypto support and may require polyfills or alternative libraries."
+      },
+      {
+        "requirement": "Real-Time Status Polling",
+        "reason": "The frontend polls /api/auth/status to detect when authentication completes. This endpoint must query the k1 challenge store and check session cookies. Edge functions can handle this, but only if backed by a persistent store—otherwise they cannot track login state across invocations.",
+        "technical": "Status polling requires reading from the k1 challenge store (in-memory Map or external KV) and checking session cookies. Pure edge functions cannot maintain the in-memory store needed for this."
+      }
+    ],
+    "summary": "Lightning Login fundamentally requires a stateful backend—either a traditional server (Node.js, Express, Next.js on a server) or a serverless architecture backed by persistent storage (Redis, PostgreSQL, KV stores). Pure edge functions without external persistence cannot implement the protocol correctly."
+  },
+  "platformCategories": [
+    {
+      "category": "❌ Not Viable: Frontend-Only Vibe Coding Platforms",
+      "description": "These platforms generate beautiful React/Next.js frontends but only support edge functions or static site generation. They cannot run Lightning Login without significant workarounds.",
+      "platforms": [
+        {
+          "name": "V0 by Vercel",
+          "url": "https://v0.dev",
+          "description": "AI-powered React component generator that deploys to Vercel's edge network. Generates UI components and edge functions, but lacks persistent server infrastructure.",
+          "limitations": [
+            "Only supports Vercel Edge Functions—no traditional Node.js runtime",
+            "No built-in persistent storage for k1 challenges (would require external Redis/Upstash)",
+            "Edge runtime has limited crypto API support for secp256k1 operations",
+            "Session management requires external services (Upstash, Planetscale, etc.)"
+          ],
+          "workaround": "You could theoretically use V0 for the frontend and manually configure Upstash Redis for k1 storage + Upstash KV for sessions, but this defeats the 'vibe coding' experience—you'd be manually wiring infrastructure.",
+          "verdict": "Not viable for true vibe coding. Requires extensive manual infrastructure setup."
+        },
+        {
+          "name": "Lovable (formerly GPT Engineer)",
+          "url": "https://lovable.dev",
+          "description": "Conversational AI platform that generates full-stack applications. Primarily focused on frontend with edge functions, similar architecture to V0.",
+          "limitations": [
+            "Edge-first architecture—no persistent server runtime by default",
+            "Limited backend logic support beyond edge functions",
+            "No built-in database or KV store for k1 challenge management",
+            "Would require external services for session persistence"
+          ],
+          "workaround": "Similar to V0—could use external Redis/KV stores, but requires manual configuration.",
+          "verdict": "Not viable for vibe coding Lightning Login. Frontend-focused platform."
+        },
+        {
+          "name": "Bolt.new (StackBlitz)",
+          "url": "https://bolt.new",
+          "description": "AI-powered full-stack development in the browser using WebContainers. While it runs Node.js, deployment options are limited.",
+          "limitations": [
+            "WebContainers run in-browser—deployment requires export to external platforms",
+            "No native deployment with persistent server (must export to Vercel, Netlify, etc.)",
+            "Prototyping works fine, but production deployment reverts to edge-only constraints"
+          ],
+          "workaround": "Great for local prototyping and testing Lightning Login, but deployment requires moving to a different platform.",
+          "verdict": "Viable for development/testing, not viable for production deployment via Bolt itself."
+        }
+      ],
+      "summary": "Frontend-only vibe coding platforms cannot run Lightning Login without external infrastructure. They're designed for edge-first architectures, which are fundamentally incompatible with stateful authentication protocols."
+    },
+    {
+      "category": "✅ Viable: Full-Stack Vibe Coding Platforms",
+      "description": "These platforms provide real servers (or serverless with persistent storage) that can handle Lightning Login's stateful requirements.",
+      "platforms": [
+        {
+          "name": "Replit",
+          "url": "https://replit.com",
+          "description": "Full-stack development platform with persistent VMs, built-in databases, and AI assistance (Replit AI). The gold standard for vibe coding Lightning Login.",
+          "capabilities": [
+            "Persistent Node.js server runtime—no edge function limitations",
+            "Built-in PostgreSQL, SQLite, and Redis support for k1/session storage",
+            "Full crypto API support—lnurl package works without polyfills",
+            "AI-powered development with Replit AI (similar to Cursor/Copilot)",
+            "One-click deployment with persistent infrastructure"
+          ],
+          "implementation": "Use Replit's Node.js template → Install lnurl package → Implement LNURL-auth endpoints → Use built-in database for session storage → Deploy. The platform handles server persistence automatically.",
+          "verdict": "✅ Fully viable. Best platform for vibe coding Lightning Login."
+        },
+        {
+          "name": "Glitch",
+          "url": "https://glitch.com",
+          "description": "Collaborative coding platform with persistent Node.js servers and built-in database support.",
+          "capabilities": [
+            "Persistent Node.js runtime (always-on for paid plans)",
+            "Built-in SQLite database for k1/session storage",
+            "Full npm package support including lnurl",
+            "Collaborative editing and AI features"
+          ],
+          "implementation": "Create Node.js project → Install dependencies → Implement LNURL-auth → Use SQLite for storage → Deploy.",
+          "verdict": "✅ Viable. Good for collaborative development and prototyping."
+        },
+        {
+          "name": "Railway",
+          "url": "https://railway.app",
+          "description": "Modern deployment platform with built-in databases and serverless scaling. Less 'vibe coding' focused, but fully capable.",
+          "capabilities": [
+            "Full Node.js runtime with persistent processes",
+            "One-click PostgreSQL, Redis, and MySQL provisioning",
+            "Environment variable management for secrets",
+            "Git-based deployment pipeline"
+          ],
+          "implementation": "Deploy Next.js app to Railway → Provision Redis for k1 storage → Configure environment variables → Deploy. More traditional than 'vibe coding' but fully functional.",
+          "verdict": "✅ Viable. More DevOps-oriented, less conversational/AI-driven."
+        },
+        {
+          "name": "Render",
+          "url": "https://render.com",
+          "description": "Cloud platform with persistent services, databases, and background workers. Similar to Railway.",
+          "capabilities": [
+            "Persistent Node.js services (not edge functions)",
+            "Managed PostgreSQL and Redis",
+            "Automatic HTTPS and custom domains",
+            "Docker support for custom runtimes"
+          ],
+          "implementation": "Deploy Node.js/Next.js service → Provision Redis → Implement LNURL-auth → Deploy.",
+          "verdict": "✅ Viable. Traditional deployment model, not AI-driven 'vibe coding'."
+        }
+      ],
+      "summary": "Replit is the only true 'vibe coding' platform that supports Lightning Login out of the box. Railway and Render work perfectly but require more traditional DevOps workflows. Glitch sits in between—collaborative and approachable, but less AI-driven than Replit."
+    },
+    {
+      "category": "⚠️ Not 'Vibe Coding': Traditional AI-Assisted Development",
+      "description": "These are IDEs and coding assistants—not platforms. They help you write code faster, but you still need to deploy to a compatible platform.",
+      "tools": [
+        {
+          "name": "Cursor",
+          "description": "AI-powered IDE (fork of VS Code) with context-aware code generation. Excellent for building Lightning Login, but you must deploy to a compatible platform (Vercel with Redis, Railway, Replit, etc.).",
+          "verdict": "Not a platform—it's a development tool. You still need to choose where to deploy."
+        },
+        {
+          "name": "GitHub Copilot",
+          "description": "AI code completion in VS Code, JetBrains IDEs, and more. Helps write LNURL-auth code, but doesn't handle infrastructure or deployment.",
+          "verdict": "Not a platform—it's a coding assistant. Deployment is separate."
+        },
+        {
+          "name": "Windsurf (Codeium)",
+          "description": "AI-powered IDE similar to Cursor. Great for development, but infrastructure and deployment are separate concerns.",
+          "verdict": "Not a platform—it's a development tool."
+        }
+      ],
+      "summary": "IDEs like Cursor and Copilot are not 'vibe coding platforms'—they're development tools. You can use them to build Lightning Login, but you still need to deploy to a platform that supports stateful backends (Replit, Railway, Vercel + Redis, etc.)."
+    }
+  ],
+  "recommendations": {
+    "title": "Which Platform Should You Use?",
+    "options": [
+      {
+        "scenario": "I want pure vibe coding—AI-driven, minimal setup, rapid iteration",
+        "recommendation": "Use Replit. It's the only platform that combines AI-assisted development with built-in server + database infrastructure. You can build and deploy Lightning Login entirely within Replit's interface.",
+        "platforms": ["Replit"]
+      },
+      {
+        "scenario": "I want to prototype Lightning Login quickly, then export to production",
+        "recommendation": "Develop locally with Cursor/Copilot (great AI assistance), then deploy to Railway or Render (persistent servers + databases). Alternatively, prototype in Replit and migrate later.",
+        "platforms": ["Cursor + Railway", "Cursor + Render", "Replit"]
+      },
+      {
+        "scenario": "I want to use Vercel/V0 for the frontend but need Lightning Login",
+        "recommendation": "Deploy your frontend to Vercel, but add Upstash Redis for k1 storage and Upstash KV or Planetscale for session management. This works but requires manual infrastructure wiring—not true 'vibe coding'.",
+        "platforms": ["Vercel + Upstash Redis + Upstash KV"]
+      },
+      {
+        "scenario": "I'm building a serious production app with Lightning Login",
+        "recommendation": "Use traditional deployment: Next.js on Vercel with Upstash/Planetscale, or deploy to Railway/Render with PostgreSQL/Redis. Develop locally with Cursor for best AI assistance.",
+        "platforms": ["Next.js + Vercel + Upstash", "Railway + PostgreSQL", "Render + Redis"]
+      }
+    ]
+  },
+  "summary": {
+    "title": "The Bottom Line",
+    "points": [
+      "Lightning Login requires a stateful backend—edge-only platforms cannot run it without external infrastructure.",
+      "V0, Lovable, and similar frontend-focused platforms are not viable for true vibe coding of Lightning Login.",
+      "Replit is the only platform that combines vibe coding (AI-driven, conversational development) with the infrastructure needed for Lightning Login.",
+      "Traditional IDEs (Cursor, Copilot) are not platforms—you still need to deploy somewhere that supports servers + databases.",
+      "For production apps, use Vercel + Upstash, Railway, or Render—but these require more DevOps knowledge than 'vibe coding'."
+    ],
+    "finalThought": "If you want to vibe code Lightning Login from scratch with minimal setup, use Replit. Everything else either requires manual infrastructure configuration (defeating the vibe) or is a development tool rather than a platform."
+  }
+}
