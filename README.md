@@ -156,6 +156,39 @@ Each section type has specific required and optional fields defined in the schem
 - `npm run lint` - Run ESLint
 - `npm run validate` - Validate all content files
 
+## Vibe coding (portable AI prompt)
+
+Copy/paste this prompt into your AI coding environment (Cursor, ChatGPT, Claude, Copilot Chat, etc.). It’s written to work **with or without** repo-integrated tools.
+
+```text
+You are an expert TypeScript/Next.js engineer working in an existing repo.
+
+## Objective
+Help me implement the change described below with minimal, correct edits.
+
+## Change request
+<describe what you want to build/fix, including expected behavior and any acceptance criteria>
+
+## Repo context (important constraints)
+- Framework: Next.js (App Router) + TypeScript.
+- Prefer Server Components for data fetching where possible (minimize client-side fetching).
+- Use functional React components and named exports.
+- Do not modify styling, class names, or DOM structure unless the request is explicitly about UI.
+- If accessing request-dependent data (cookies/headers), do it in the appropriate server context.
+- If touching dynamic route params/headers/cookies APIs, follow Next.js guidance (await dynamic APIs before using their properties).
+- Keep educational content accurate and consistent (LNURL-auth flow, k1 specs, signature verification, etc.).
+
+## Working agreement
+- First, identify the exact files to change (and why).
+- Then, make the smallest set of edits to satisfy the request.
+- After changes, run: npm run lint && npm run build (and npm run validate if content files changed).
+- If something is ambiguous, pick the safest assumption and document it briefly.
+
+## Output format
+- If you can edit files directly in this environment: make the changes and summarize them.
+- If you cannot edit files: output a patch/diff and a short verification checklist.
+```
+
 ## Contributing
 
 1. Make changes to content files in `src/content/`
