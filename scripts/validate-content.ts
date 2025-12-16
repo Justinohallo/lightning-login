@@ -1,7 +1,9 @@
 import { LightningLoginEducationSchema } from "@/lib/schemas/educationSchema";
 import { DeveloperContentSchema } from "@/lib/schemas/developerSchema";
+import { EventsSchema } from "@/lib/schemas/eventsSchema";
 import lightningLoginEducation from "@/content/lightning-login.education.json";
 import lightningLoginDeveloperContent from "@/content/developer/lightning-login.developer.json";
+import events from "@/content/events.json";
 
 function formatZodError(error: unknown): string {
   if (error && typeof error === "object" && "issues" in error) {
@@ -36,6 +38,16 @@ try {
   console.log("✓ Developer content validated successfully");
 } catch (error) {
   console.error("✗ Developer content validation failed:");
+  console.error(formatZodError(error));
+  hasErrors = true;
+}
+
+// Validate events content
+try {
+  EventsSchema.parse(events);
+  console.log("✓ Events content validated successfully");
+} catch (error) {
+  console.error("✗ Events content validation failed:");
   console.error(formatZodError(error));
   hasErrors = true;
 }

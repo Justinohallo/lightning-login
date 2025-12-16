@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bitcoin-2025",
+    "title": "Bitcoin 2025",
+    "description": "The world's largest Bitcoin conference",
+    "type": "external",
+    "location": "Nashville, TN",
+    "venue": "Music City Center",
+    "startDate": "2025-05-15",
+    "endDate": "2025-05-17",
+    "url": "https://b.tc/conference/bitcoin2025",
+    "status": "upcoming",
+    "socialMedia": {
+      "twitter": "https://twitter.com/TheBitcoinConf",
+      "hashtag": "#Bitcoin2025"
+    }
+  },
+  {
+    "id": "lightning-hackday-2025",
+    "title": "Lightning Hackday 2025",
+    "description": "A community-driven hackathon focused on Lightning Network development",
+    "type": "internal",
+    "location": "Remote",
+    "venue": "Online",
+    "startDate": "2025-03-20",
+    "endDate": "2025-03-21",
+    "url": null,
+    "status": "upcoming",
+    "socialMedia": {
+      "twitter": null,
+      "hashtag": "#LightningHackday2025"
+    }
+  },
+  {
+    "id": "btc-miami-2025",
+    "title": "Bitcoin Miami 2025",
+    "description": "Premier Bitcoin event in Miami",
+    "type": "external",
+    "location": "Miami, FL",
+    "venue": "Miami Beach Convention Center",
+    "startDate": "2025-01-25",
+    "endDate": "2025-01-27",
+    "url": "https://btcmiami.com",
+    "status": "upcoming",
+    "socialMedia": {
+      "twitter": "https://twitter.com/BitcoinMiami",
+      "hashtag": "#BTCMiami2025"
+    }
+  }
+]
